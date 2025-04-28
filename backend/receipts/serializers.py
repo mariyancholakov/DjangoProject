@@ -1,14 +1,18 @@
 from rest_framework import serializers
-from .models import Receipt
+from .models import Receipt, Product
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'price']
 
 class ReceiptSerializer(serializers.ModelSerializer):
-    warranty_expiry_date = serializers.SerializerMethodField()
+    products = ProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = Receipt
         fields = [
             'id',
-            'user',
             'title',
             'store_name',
             'total_amount',
@@ -17,8 +21,5 @@ class ReceiptSerializer(serializers.ModelSerializer):
             'image',
             'warranty_months',
             'created_at',
-            'warranty_expiry_date'
+            'products'
         ]
-
-    def get_warranty_expiry_date(self, obj):
-        return obj.warranty_expiry_date()

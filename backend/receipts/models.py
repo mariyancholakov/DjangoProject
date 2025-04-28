@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 class Receipt(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receipts")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receipts", null=True, blank=True)
     title = models.CharField(max_length=100)
     store_name = models.CharField(max_length=100)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -28,3 +28,18 @@ class Receipt(models.Model):
         
     def __str__(self):
         return f"{self.title} - {self.store_name}"
+
+class Product(models.Model):
+    receipt = models.ForeignKey(Receipt, related_name='products', on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.name} - {self.price} лв"
+
+
+
+
+
+
+
