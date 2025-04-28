@@ -104,6 +104,36 @@ def process_receipt(request):
         return JsonResponse({"extracted_data": extracted_data})
 
 
+class OCRView(APIView):
+    def post(self, request):
+        if 'image' not in request.FILES:
+            return Response(
+                {'error': 'No image provided'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        image_file = request.FILES['image']
+        temp_path = f'media/temp/{image_file.name}'
+        
+        try:
+            os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+            
+            with open(temp_path, 'wb+') as destination:
+                for chunk in image_file.chunks():
+                    destination.write(chunk)
 
+            ocr_service = OCRService()
+            text = ocr_service.extract_text(temp_path)
+            os.remove(temp_path)
+
+            if text:
+                return Response({'text': text})
+            return Response(
+                {'error': 'Failed to extract text'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
