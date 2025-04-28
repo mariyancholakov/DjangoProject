@@ -12,60 +12,73 @@ function ReceiptList() {
   const fetchReceipts = async () => {
     try {
       setLoading(true);
-      axios
-        .get("http://127.0.0.1:8000/api/receipts/")
-        .then((response) => {
-          console.log(response);
-          setReceipts(response.data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching receipts:", error);
-          setLoading(false);
-        });
+      const response = await axios.get("http://127.0.0.1:8000/api/receipts/", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setReceipts(response.data);
     } catch (error) {
       console.error("Error fetching receipts:", error);
+    } finally {
       setLoading(false);
     }
   };
 
-  // В ReceiptList.jsx
   return (
-    <>
-      <p className="text-xl font-semibold mb-4">My receipts</p>
+    <div>
+      <h2>My Receipts</h2>
+
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <div className="grid gap-4">
+        <div>
           {receipts.map((receipt) => {
-            const imageUrl = `http://127.0.0.1:8000${receipt.image}`;
-            console.log("Image URL:", imageUrl);
+            const imageUrl = receipt.image
+              ? `http://127.0.0.1:8000/media/${receipt.image.split("/").pop()}`
+              : null;
 
             return (
-              <div key={receipt.id} className="p-4 border rounded shadow">
-                <p>
-                  <strong>Title:</strong> {receipt.title}
-                </p>
-                <p>
-                  <strong>Store:</strong> {receipt.store_name}
-                </p>
-                <p>
-                  <strong>Total:</strong> {receipt.total_amount} лв
-                </p>
-                <p>
-                  <strong>Date:</strong> {receipt.date}
-                </p>
-                <p>
-                  <strong>Warranty:</strong> {receipt.warranty_months || "Няма"}{" "}
-                  months
-                </p>
-                <img src={imageUrl} alt="Receipt" className="mt-2 w-48" />
+              <div key={receipt.id}>
+                <div>
+                  <p>
+                    <span>Title:</span> {receipt.title}
+                  </p>
+                  <p>
+                    <span>Store:</span> {receipt.store_name}
+                  </p>
+                  <p>
+                    <span>Total:</span> {receipt.total_amount} BGN
+                  </p>
+                  <p>
+                    <span>Date:</span> {receipt.date}
+                  </p>
+                  <p>
+                    <span>Warranty:</span> {receipt.warranty_months || "0"}{" "}
+                    months
+                  </p>
+                </div>
+
+                {receipt.products?.length > 0 && (
+                  <div>
+                    <h3>Products:</h3>
+                    <ul>
+                      {receipt.products.map((product, index) => (
+                        <li key={index}>
+                          {product.name} - {product.price} BGN
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {imageUrl && <img src={imageUrl} alt="Receipt" />}
               </div>
             );
           })}
         </div>
       )}
-    </>
+    </div>
   );
 }
 
