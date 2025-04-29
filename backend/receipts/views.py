@@ -89,11 +89,19 @@ class ReceiptRetrieveUpdateDeleteAPIView(APIView):
     def delete(self, request, pk):
         try:
             receipt = Receipt.objects.get(pk=pk)
+            Product.objects.filter(receipt=receipt).delete()
+            receipt.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except Receipt.DoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        receipt.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {"error": "Receipt not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 def process_receipt(request):

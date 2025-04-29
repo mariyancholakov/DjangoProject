@@ -38,8 +38,23 @@ function ReceiptList() {
     console.log("Edit receipt:", id);
   };
 
-  const handleDelete = (id) => {
-    console.log("Delete receipt:", id);
+  const handleDelete = async (id) => {
+    setLoading(true);
+    try {
+      const res = await axios.delete(
+        `http://127.0.0.1:8000/api/receipts/${id}/`
+      );
+
+      if (res.status === 204) {
+        setReceipts((prevReceipts) =>
+          prevReceipts.filter((receipt) => receipt.id !== id)
+        );
+      }
+    } catch (error) {
+      console.error("Delete error details:", error.response?.data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
