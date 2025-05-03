@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
-
 class Receipt(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receipts", null=True, blank=True)
     title = models.CharField(max_length=100)
@@ -15,7 +13,6 @@ class Receipt(models.Model):
         ("clothing", "Дрехи"),
         ("other", "Друго"),
     ])
-    image = models.ImageField(upload_to="receipt_images/")
     warranty_months = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -23,11 +20,21 @@ class Receipt(models.Model):
         if self.warranty_months:
             from datetime import timedelta
             return self.date + timedelta(days=self.warranty_months * 30)
-        else:
-            return None
+        return None
         
     def __str__(self):
         return f"{self.title} - {self.store_name}"
+
+class ReceiptImage(models.Model):
+    receipt = models.ForeignKey(Receipt, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="receipt_images/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Image for {self.receipt.title}"
+
+    class Meta:
+        ordering = ['-uploaded_at']
 
 class Product(models.Model):
     receipt = models.ForeignKey(Receipt, related_name='products', on_delete=models.CASCADE)
@@ -36,10 +43,3 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.price} лв"
-
-
-
-
-
-
-
