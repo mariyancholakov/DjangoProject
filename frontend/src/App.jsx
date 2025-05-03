@@ -8,6 +8,8 @@ import MyReceiptsPage from "./pages/MyReceiptsPage";
 import UploadReceiptPage from "./pages/UploadReceiptPage";
 import StatisticsPage from "./pages/StatisticsPage";
 import "./App.css";
+import Login from "./components/Login";
+import Register from "./components/Register";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="/my-receipts" element={<MyReceiptsPage />} />
         <Route path="/upload" element={<UploadReceiptPage />} />
         <Route path="/statistics" element={<StatisticsPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </>
   );
