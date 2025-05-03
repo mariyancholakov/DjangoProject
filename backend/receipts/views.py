@@ -1,69 +1,87 @@
+import json
+from datetime import datetime
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
-from .models import Receipt, Product
-from .serializers import ReceiptSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from .models import Receipt, Product, ReceiptImage
+from .serializers import ReceiptSerializer, UserSerializer
 from django.http import JsonResponse
 from .services.gemini_service import GeminiService
 from .services.ocr_service import OCRService
-from datetime import datetime
 import os
 
 # Create your views here.
 
 class ReceiptListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Receipt.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = ReceiptSerializer
-    
+
+    def get_queryset(self):
+        return Receipt.objects.filter(user=self.request.user).prefetch_related('images', 'products')
+
     def create(self, request, *args, **kwargs):
-        raw_text = request.data.get('raw_text')
-        if not raw_text:
-            return Response(
-                {'error': 'raw_text is required'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        gemini_service = GeminiService()
-        receipt_data = gemini_service.extract_receipt_data(raw_text)
-        
-        if not receipt_data:
-            return Response(
-                {'error': 'Failed to extract receipt data'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         try:
-            date = datetime.strptime(receipt_data['date'], '%d-%m-%Y').date()
+            receipt_data = request.data
+            
+            date_str = receipt_data.get('date')
+            try:
+                date = datetime.strptime(date_str, '%d-%m-%Y').date()
+            except ValueError:
+                return Response(
+                    {'error': 'Invalid date format. Use DD-MM-YYYY'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
             receipt = Receipt.objects.create(
+                user=request.user,
                 title=f"Receipt from {receipt_data['store_name']}",
                 store_name=receipt_data['store_name'],
                 total_amount=receipt_data['total_amount'],
                 date=date,
-                category="other",
-                warranty_months=None,
-                image=request.data.get('image')
+                category=receipt_data.get('category', 'other'),
+                warranty_months=receipt_data.get('warranty_months', 0)
             )
 
-            for product_data in receipt_data['products']:
-                Product.objects.create(
+            if 'images' in request.FILES:
+                ReceiptImage.objects.create(
                     receipt=receipt,
-                    name=product_data['name'],
-                    price=product_data['price']
+                    image=request.FILES['images']
                 )
+
+            products = receipt_data.get('products')
+            if products:
+                if isinstance(products, str):
+                    products = json.loads(products)
+                for product_data in products:
+                    Product.objects.create(
+                        receipt=receipt,
+                        name=product_data['name'],
+                        price=product_data['price']
+                    )
 
             serializer = self.get_serializer(receipt)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+        except KeyError as e:
+            return Response(
+                {'error': f'Missing required field: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
             return Response(
-                {'error': str(e)}, 
+                {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-class ReceiptRetrieveUpdateDeleteAPIView(APIView):
+class ReceiptRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, pk):
         try:
             receipt = Receipt.objects.get(pk=pk)
@@ -100,6 +118,35 @@ class ReceiptRetrieveUpdateDeleteAPIView(APIView):
         except Exception as e:
             return Response(
                 {"error": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ProcessReceiptView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        raw_text = request.data.get('raw_text')
+        if not raw_text:
+            return Response(
+                {'error': 'raw_text is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            gemini_service = GeminiService()
+            receipt_data = gemini_service.extract_receipt_data(raw_text)
+            
+            if not receipt_data:
+                return Response(
+                    {'error': 'Failed to process receipt'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            return Response(receipt_data)
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -145,3 +192,54 @@ class OCRView(APIView):
             if os.path.exists(temp_path):
                 os.remove(temp_path)
 
+
+class LoginView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            user = User.objects.get(username=request.data['username'])
+            response.data['username'] = user.username
+        return response
+
+
+class RegisterView(APIView):
+    def post(self, request):
+        try:
+            data = request.data
+            # Check if user already exists
+            if User.objects.filter(username=data['username']).exists():
+                return Response(
+                    {'error': 'Username already exists'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Create user
+            user = User.objects.create(
+                username=data['username'],
+                password=make_password(data['password'])
+            )
+
+            # Generate tokens
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'username': user.username
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class UserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({
+            'id': request.user.id,
+            'username': request.user.username
+        })
