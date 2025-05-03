@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/axios";
 import { MdOutlineDelete } from "react-icons/md";
 import { CiEdit } from "react-icons/ci";
+import ClipLoader from "react-spinners/ClipLoader";
 
 function ReceiptList() {
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [sortBy, setSortBy] = useState("");
+  const navigate = useNavigate();
 
   const sortOptions = [
     { value: "date", label: "Date" },
@@ -14,21 +18,43 @@ function ReceiptList() {
     { value: "warranty_months", label: "Warranty" },
   ];
 
+  const categoryLabels = {
+    food: "Храна",
+    electronics: "Електроника",
+    clothing: "Дрехи",
+    other: "Друго",
+  };
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      food: "bg-green-100 text-green-800",
+      electronics: "bg-blue-100 text-blue-800",
+      clothing: "bg-purple-100 text-purple-800",
+      other: "bg-gray-100 text-gray-800",
+    };
+    return colors[category] || colors.other;
+  };
+
   useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     fetchReceipts();
-  }, []);
+  }, [navigate]);
 
   const fetchReceipts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://127.0.0.1:8000/api/receipts/", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await axiosInstance.get("/receipts/");
+      console.log("API Response:", response.data);
       setReceipts(response.data);
     } catch (error) {
       console.error("Error fetching receipts:", error);
+      if (error.response?.status === 401) {
+        navigate("/login");
+      }
     } finally {
       setLoading(false);
     }
@@ -39,19 +65,20 @@ function ReceiptList() {
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this receipt?")) {
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await axios.delete(
-        `http://127.0.0.1:8000/api/receipts/${id}/`
-      );
-
+      const res = await axiosInstance.delete(`/receipts/${id}/`);
       if (res.status === 204) {
         setReceipts((prevReceipts) =>
           prevReceipts.filter((receipt) => receipt.id !== id)
         );
       }
     } catch (error) {
-      console.error("Delete error details:", error.response?.data);
+      console.error("Delete error:", error);
     } finally {
       setLoading(false);
     }
@@ -64,9 +91,14 @@ function ReceiptList() {
         <input
           type="text"
           placeholder="Search receipts..."
-          className="shadow-md bg-white/50 shadow-blue-600/30 focus:shadow-blue-500/50  placeholder:text-gray-600 outline-none rounded-full h-10 w-80 px-4"
+          className="shadow-md bg-white/50 shadow-blue-600/30 focus:shadow-blue-500/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-80 px-4"
         />
-        <select className="shadow-md bg-white placeholder:text-gray-600 outline-none rounded-full h-10 w-70 pl-4 cursor-pointer">
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="shadow-md bg-white placeholder:text-gray-600 outline-none rounded-full h-10 w-70 pl-4 cursor-pointer"
+        >
+          <option value="">Sort by...</option>
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
               Sort by: {option.label}
@@ -77,28 +109,31 @@ function ReceiptList() {
 
       {loading ? (
         <div className="flex justify-center items-center h-32">
-          <div className="text-lg">Loading...</div>
+          <ClipLoader color="#007BFF" />
+        </div>
+      ) : receipts.length === 0 ? (
+        <div className="flex justify-center items-center h-32">
+          <h2 className="font-bold text-gray-700 text-3xl">
+            No receipts found.
+          </h2>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {receipts.map((receipt) => {
-            const imageUrl = receipt.image?.startsWith("http")
-              ? receipt.image
-              : `http://127.0.0.1:8000${receipt.image}`;
-
+            const imageUrl = receipt.images?.[0]?.image || null;
             return (
               <div
                 key={receipt.id}
                 className="bg-white rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow duration-300 relative flex flex-col h-full"
               >
                 <button
-                  className="cursor-pointer shadow-md hover:shadow-gray-300 absolute top-2 right-2 p-2 rounded-full bg-gray-50 z-10"
+                  className="absolute top-2 right-2 p-2 rounded-full bg-gray-50 z-10 shadow-md hover:shadow-gray-300"
                   onClick={() => handleEdit(receipt.id)}
                 >
                   <CiEdit className="text-blue-600" size={30} />
                 </button>
                 <button
-                  className="cursor-pointer shadow-md hover:shadow-gray-300 absolute top-2 left-2 p-2 rounded-full bg-gray-50 z-10"
+                  className="absolute top-2 left-2 p-2 rounded-full bg-gray-50 z-10 shadow-md hover:shadow-gray-300"
                   onClick={() => handleDelete(receipt.id)}
                 >
                   <MdOutlineDelete className="text-red-600" size={30} />
@@ -111,7 +146,6 @@ function ReceiptList() {
                     </h3>
 
                     <div className="space-y-2 mb-4">
-                      <p className="flex justify-between"></p>
                       <p className="flex justify-between">
                         <span className="text-gray-600">Total:</span>
                         <span className="font-medium">
@@ -128,6 +162,16 @@ function ReceiptList() {
                           {receipt.warranty_months || "0"} months
                         </span>
                       </p>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-600">Category:</span>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${getCategoryColor(
+                            receipt.category
+                          )}`}
+                        >
+                          {categoryLabels[receipt.category]}
+                        </span>
+                      </div>
                     </div>
 
                     {receipt.products?.length > 0 && (
@@ -154,10 +198,9 @@ function ReceiptList() {
                     <div className="p-4">
                       <img
                         src={imageUrl}
-                        alt="Receipt"
+                        alt={`Receipt for ${receipt.title}`}
                         className="w-full h-48 object-cover rounded-md"
                         onError={(e) => {
-                          console.error("Image failed to load:", imageUrl);
                           e.target.style.display = "none";
                         }}
                       />
