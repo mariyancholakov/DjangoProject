@@ -3,8 +3,7 @@ import UploadReceipt from "../components/UploadReceipt";
 
 function UploadReceiptPage() {
   return (
-    <div>
-      <h1>UploadReceiptPage</h1>
+    <div className="h-screen flex justify-center items-baseline mt-20">
       <UploadReceipt />
     </div>
   );

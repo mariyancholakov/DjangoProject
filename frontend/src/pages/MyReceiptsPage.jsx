@@ -1,7 +1,7 @@
 import React from "react";
 
 function MyReceiptsPage() {
-  return <div>MyReceiptsPage</div>;
+  return <div className="h-screen">MyReceiptsPage</div>;
 }
 
 export default MyReceiptsPage;

@@ -3,7 +3,7 @@ import ReceiptList from "../components/ReceiptList";
 
 function Homepage() {
   return (
-    <div className="px-20 py-10">
+    <div className="px-20 py-10 h-full">
       <ReceiptList />
     </div>
   );
