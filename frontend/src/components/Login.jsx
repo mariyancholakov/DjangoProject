@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -34,8 +35,10 @@ function Login() {
           "Authorization"
         ] = `Bearer ${response.data.access}`;
         navigate("/");
+        toast.success("Login successful!");
       }
     } catch (error) {
+      toast.error("Login failed!");
       console.error("Login failed:", error);
       setError(
         error.response?.data?.detail ||

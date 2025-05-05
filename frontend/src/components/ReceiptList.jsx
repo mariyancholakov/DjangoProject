@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axios";
-import { MdOutlineDelete } from "react-icons/md";
-import { CiEdit } from "react-icons/ci";
 import ClipLoader from "react-spinners/ClipLoader";
+import ReceiptCard from "./ReceiptCard";
+import EditReceiptModal from "./EditReceiptModal";
+import { toast } from "react-toastify";
 
 function ReceiptList() {
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
   const navigate = useNavigate();
 
   const sortOptions = [
@@ -17,23 +20,6 @@ function ReceiptList() {
     { value: "store_name", label: "Store Name" },
     { value: "warranty_months", label: "Warranty" },
   ];
-
-  const categoryLabels = {
-    food: "Храна",
-    electronics: "Електроника",
-    clothing: "Дрехи",
-    other: "Друго",
-  };
-
-  const getCategoryColor = (category) => {
-    const colors = {
-      food: "bg-green-100 text-green-800",
-      electronics: "bg-blue-100 text-blue-800",
-      clothing: "bg-purple-100 text-purple-800",
-      other: "bg-gray-100 text-gray-800",
-    };
-    return colors[category] || colors.other;
-  };
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -60,8 +46,39 @@ function ReceiptList() {
     }
   };
 
-  const handleEdit = (id) => {
-    console.log("Edit receipt:", id);
+  const handleEditClick = (id) => {
+    const receipt = receipts.find((r) => r.id === id);
+    setSelectedReceipt(receipt);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEdit = async (id, formData) => {
+    try {
+      const requestData = {
+        title: `Receipt from ${formData.store_name}`,
+        store_name: formData.store_name,
+        total_amount: formData.total_amount,
+        date: formData.date,
+        category: formData.category,
+        warranty_months: formData.warranty_months || 0,
+        products: formData.products,
+      };
+
+      const response = await axiosInstance.put(`/receipts/${id}/`, requestData);
+
+      if (response.status === 200) {
+        setReceipts((prevReceipts) =>
+          prevReceipts.map((receipt) =>
+            receipt.id === id ? response.data : receipt
+          )
+        );
+        setIsModalOpen(false);
+        toast.success("Receipt updated successfully!");
+      }
+    } catch (error) {
+      toast.error("Failed to edit receipt.");
+      console.error("Edit error:", error.message);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -77,7 +94,9 @@ function ReceiptList() {
           prevReceipts.filter((receipt) => receipt.id !== id)
         );
       }
+      toast.success("Receipt deleted successfully!");
     } catch (error) {
+      toast.error("Failed to delete receipt.");
       console.error("Delete error:", error);
     } finally {
       setLoading(false);
@@ -119,99 +138,22 @@ function ReceiptList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {receipts.map((receipt) => {
-            const imageUrl = receipt.images?.[0]?.image || null;
-            return (
-              <div
-                key={receipt.id}
-                className="bg-white rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow duration-300 relative flex flex-col h-full"
-              >
-                <button
-                  className="absolute top-2 right-2 p-2 rounded-full bg-gray-50 z-10 shadow-md hover:shadow-gray-300"
-                  onClick={() => handleEdit(receipt.id)}
-                >
-                  <CiEdit className="text-blue-600" size={30} />
-                </button>
-                <button
-                  className="absolute top-2 left-2 p-2 rounded-full bg-gray-50 z-10 shadow-md hover:shadow-gray-300"
-                  onClick={() => handleDelete(receipt.id)}
-                >
-                  <MdOutlineDelete className="text-red-600" size={30} />
-                </button>
-
-                <div className="flex flex-col h-full">
-                  <div className="p-6 flex-grow">
-                    <h3 className="font-semibold text-center px-2 text-xl mb-4">
-                      {receipt.title}
-                    </h3>
-
-                    <div className="space-y-2 mb-4">
-                      <p className="flex justify-between">
-                        <span className="text-gray-600">Total:</span>
-                        <span className="font-medium">
-                          {receipt.total_amount} BGN
-                        </span>
-                      </p>
-                      <p className="flex justify-between">
-                        <span className="text-gray-600">Date:</span>
-                        <span className="font-medium">{receipt.date}</span>
-                      </p>
-                      <p className="flex justify-between">
-                        <span className="text-gray-600">Warranty:</span>
-                        <span className="font-medium">
-                          {receipt.warranty_months || "0"} months
-                        </span>
-                      </p>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Category:</span>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${getCategoryColor(
-                            receipt.category
-                          )}`}
-                        >
-                          {categoryLabels[receipt.category]}
-                        </span>
-                      </div>
-                    </div>
-
-                    {receipt.products?.length > 0 && (
-                      <div className="mt-4">
-                        <h4 className="font-semibold mb-2">Products:</h4>
-                        <ul className="space-y-1">
-                          {receipt.products.map((product, index) => (
-                            <li
-                              key={index}
-                              className="flex justify-between text-sm"
-                            >
-                              <span>{product.name}</span>
-                              <span className="font-medium">
-                                {product.price} BGN
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-
-                  {imageUrl && (
-                    <div className="p-4">
-                      <img
-                        src={imageUrl}
-                        alt={`Receipt for ${receipt.title}`}
-                        className="w-full h-48 object-cover rounded-md"
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {receipts.map((receipt) => (
+            <ReceiptCard
+              key={receipt.id}
+              receipt={receipt}
+              handleEdit={handleEditClick}
+              handleDelete={handleDelete}
+            />
+          ))}
         </div>
       )}
+      <EditReceiptModal
+        isOpen={isModalOpen}
+        receipt={selectedReceipt}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveEdit}
+      />
     </div>
   );
 }

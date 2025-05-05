@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../utils/axios";
+import { toast } from "react-toastify";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -35,9 +36,11 @@ function Register() {
       });
 
       if (response.status === 201) {
+        toast.success("Registration successful!");
         navigate("/login");
       }
     } catch (error) {
+      toast.error("Registration failed!");
       setError(error.response?.data?.error || "Registration failed");
     }
   };

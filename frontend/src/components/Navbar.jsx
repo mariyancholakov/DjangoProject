@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { CiCirclePlus } from "react-icons/ci";
 import axiosInstance from "../utils/axios";
+import { toast } from "react-toastify";
+import Logo from "../assets/Logo.png";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -34,13 +36,14 @@ function Navbar() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     setUsername(null);
+    toast.success("Logout successful!");
     navigate("/login");
   };
 
   return (
     <div className="flex justify-center gap-50 font-bold items-center w-full pb-8 pt-2">
       <NavLink className={navLinkStyles} to="/">
-        SmartReceipt
+        <img src={Logo} alt="SmartReceipt Logo" className="h-12 w-auto" />
       </NavLink>
       <NavLink className={navLinkStyles} to="/my-receipts">
         MyReceipts

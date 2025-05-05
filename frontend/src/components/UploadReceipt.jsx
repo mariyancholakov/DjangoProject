@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { FiUpload } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import ClipLoader from "react-spinners/ClipLoader";
+import { toast } from "react-toastify";
 
 const categoryLabels = {
   food: "Храна",
@@ -136,9 +137,11 @@ function UploadReceipt() {
         setReceiptFile(null);
         setPreviewUrl(null);
         setExtractedData(null);
+        toast.success("Receipt uploaded successfully!");
         navigate("/");
       }
     } catch (error) {
+      toast.error("Failed to upload receipt.");
       console.error("Error saving receipt:", error);
       console.log("Error response:", error.response?.data);
     } finally {
