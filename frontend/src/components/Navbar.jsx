@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { CiCirclePlus } from "react-icons/ci";
 import axiosInstance from "../utils/axios";
 import { toast } from "react-toastify";
-import Logo from "../assets/Logo.png";
+import Logo_final from "../assets/Logo_final.png";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ function Navbar() {
   }, []);
 
   const navLinkStyles = ({ isActive }) =>
-    `relative px-2 py-1
+    `relative px-2 py-1 text-sm
     ${isActive ? "text-[#007BFF]" : "text-gray-700"}
     before:content-[''] before:absolute before:block before:w-full 
     before:h-[2px] before:bottom-0 before:left-0 before:bg-[#007BFF]
@@ -42,14 +42,14 @@ function Navbar() {
 
   return (
     <div className="flex justify-center gap-50 font-bold items-center w-full pb-8 pt-2">
-      <NavLink className={navLinkStyles} to="/">
-        <img src={Logo} alt="SmartReceipt Logo" className="h-12 w-auto" />
+      <NavLink style={{ fontSize: 20 }} className={navLinkStyles} to="/">
+        SmartReceipt
       </NavLink>
       <NavLink className={navLinkStyles} to="/my-receipts">
         MyReceipts
       </NavLink>
       <NavLink className="text-[#007BFF]" to="/upload">
-        <CiCirclePlus size={60} />
+        <CiCirclePlus size={55} />
       </NavLink>
       <NavLink className={navLinkStyles} to="/statistics">
         Statistics
@@ -65,9 +65,20 @@ function Navbar() {
           </button>
         </div>
       ) : (
-        <NavLink className={navLinkStyles} to="/login">
-          Login
-        </NavLink>
+        <div>
+          <NavLink
+            className="px-4 py-2 text-white border-2 border-[#007BFF] mr-2 text-sm bg-[#007BFF] hover:bg-blue-600 hover:border-blue-600 transition duration-300 ease-in-out cursor-pointer rounded-md"
+            to="/login"
+          >
+            Login
+          </NavLink>
+          <NavLink
+            className="px-4 py-2 text-sm border-2 border-[#007BFF] hover:bg-slate-100 cursor-pointer rounded-md"
+            to="/register"
+          >
+            Register
+          </NavLink>
+        </div>
       )}
     </div>
   );

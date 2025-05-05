@@ -15,82 +15,84 @@ class GeminiService:
 
     def extract_receipt_data(self, raw_text: str) -> dict:
         prompt = f"""
-        You are a highly accurate document understanding AI. Your task is to analyze the following text extracted from a Bulgarian receipt (with OCR errors possible). Perform intelligent corrections, standardization, and structured extraction.
+        You are an AI specialized in receipt analysis. Analyze the following OCR text from a Bulgarian receipt:
 
         ### Instructions:
 
         1. **STORE NAME**
-        - Fix OCR spelling mistakes (e.g., "ЧиЧО ТОМ" ➝ "Чичо Том")
+        - Fix OCR spelling mistakes
         - Remove unnecessary special characters and spaces
-        - Keep the original known store name if recognizable (match known chains if possible)
+        - Keep original store name if recognizable (match known Bulgarian chains)
 
         2. **PRODUCTS**
-        - Identify the list of products from the text
-        - Correct distorted or misread names (e.g., "БАТЕРИИ РИЗ АН ВЕО" ➝ "Батерии RIZON VEO")
-        - For each product, extract:
-            - `name` (string, cleaned up)
-            - `price` (float, 2 decimal places)
-            - `category`, choose from:
-            - `"food"` (groceries, beverages, snacks, etc.)
-            - `"electronics"` (devices, accessories, batteries, etc.)
-            - `"clothing"` (apparel, shoes, accessories)
-            - `"other"` (everything else, including unknown items)
-        - Ignore non-product items like payment methods, receipt numbers, bags, rounding adjustments, etc.
+        - Its possible that there are no products
+        - Identify all products
+        - Correct misread names
+        - For each product extract:
+            - `name`: product name
+            - `price`: price in BGN (2 decimal places)
+            - `category`: one of these categories:
+                - `"food"` (food, groceries, beverages)
+                - `"electronics"` (electronics, devices, accessories)
+                - `"clothing"` (clothes, shoes, accessories)
+                - `"home"` (household items, furniture)
+                - `"pharmacy"` (medications, health products)
+                - `"transport"` (transport tickets, fuel)
+                - `"entertainment"` (movies, games, activities)
+                - `"education"` (books, courses)
+                - `"utilities"` (bills, utilities)
+                - `"services"` (services)
+                - `"finances"` (banking, insurance)
+                - `"other"` (anything else)
 
         3. **TOTAL AMOUNT**
-        - Find the final total amount paid (usually at the end of receipt)
-        - Include VAT if applicable
-        - Format as float with 2 decimal places (e.g. 6.80)
+        - Find the final paid amount
+        - Include VAT if shown
+        - Format as number with 2 decimal places
 
         4. **DATE**
-        - Look for a date in the receipt (even distorted like "Й2-45-2025")
+        - Find the date (even with errors like "21-О4-2025")
         - Convert to `DD-MM-YYYY` format
-        - If no valid date is found, use today’s date
+        - Use current date if none found
 
-        5. **CATEGORY**
-        - Based on the most frequent product category, determine the overall receipt category
+        5. **RECEIPT CATEGORY**
+        - Determine overall category based on most common product type
 
-        ### Input (OCR-processed receipt text):
+        ### Input OCR text:
         \"\"\"
         {raw_text}
         \"\"\"
 
         ### Output:
-        Respond ONLY with a valid JSON object in this exact format:
+        Return ONLY a valid JSON object in this exact format:
         {{
         "store_name": "string",
         "total_amount": "number with 2 decimals",
         "date": "DD-MM-YYYY",
-        "category": "food | electronics | clothing | other",
+        "category": "food | electronics | clothing | home | pharmacy | transport | entertainment | education | utilities | services | finances | other",
         "products": [
             {{
             "name": "string",
             "price": "number with 2 decimals",
-            "category": "food | electronics | clothing | other"
+            "category": "food | electronics | clothing | home | pharmacy | transport | entertainment | education | utilities | services | finances | other"
             }}
-            ...
         ]
         }}
         """
-
-
         try:
             response = self.model.generate_content(prompt)
             
             if not response.text:
                 raise ValueError("Empty response from Gemini")
 
-            # Extract JSON from response
             json_match = re.search(r'\{[\s\S]*\}', response.text)
             if not json_match:
                 raise ValueError("No JSON found in response")
 
             data = json.loads(json_match.group())
             
-            # Validate data structure
             self.validate_receipt_data(data)
             
-            # Determine overall receipt category
             data['category'] = self.determine_receipt_category(data['products'])
             
             return data

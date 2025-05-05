@@ -12,6 +12,14 @@ function ReceiptCard({ receipt, handleEdit, handleDelete }) {
     food: "Храна",
     electronics: "Електроника",
     clothing: "Дрехи",
+    home: "Дом",
+    pharmacy: "Аптека",
+    entertainment: "Развлечение",
+    transport: "Транспорт",
+    education: "Образование",
+    utilities: "Сметки",
+    finances: "Финанси",
+    services: "Услуги",
     other: "Друго",
   };
 
@@ -20,26 +28,46 @@ function ReceiptCard({ receipt, handleEdit, handleDelete }) {
       food: "bg-green-100 text-green-800",
       electronics: "bg-blue-100 text-blue-800",
       clothing: "bg-purple-100 text-purple-800",
+      home: "bg-amber-100 text-amber-800",
+      pharmacy: "bg-red-100 text-red-800",
+      transport: "bg-sky-100 text-sky-800",
+      entertainment: "bg-pink-100 text-pink-800",
+      education: "bg-indigo-100 text-indigo-800",
+      utilities: "bg-cyan-100 text-cyan-800",
+      services: "bg-teal-100 text-teal-800",
+      finances: "bg-violet-100 text-violet-800",
       other: "bg-gray-100 text-gray-800",
     };
     return colors[category] || colors.other;
+  };
+
+  const handleCardClick = (e) => {
+    if (!e.target.closest("button")) {
+      navigate(`/receipts/${receipt.id}`);
+    }
   };
 
   return (
     <div
       key={receipt.id}
       className="bg-white rounded-lg cursor-pointer shadow-md hover:shadow-lg transition-shadow duration-300 relative flex flex-col h-full"
-      onClick={() => navigate(`/receipts/${receipt.id}`)}
+      onClick={handleCardClick}
     >
       <button
         className="cursor-pointer absolute top-2 right-2 p-2 rounded-full bg-gray-50 z-10 shadow-md hover:shadow-gray-300"
-        onClick={() => handleEdit(receipt.id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEdit(receipt.id);
+        }}
       >
         <CiEdit className="text-blue-600" size={30} />
       </button>
       <button
-        className="absolute top-2 left-2 p-2 rounded-full bg-gray-50 z-10 shadow-md hover:shadow-gray-300"
-        onClick={() => handleDelete(receipt.id)}
+        className="absolute cursor-pointer top-2 left-2 p-2 rounded-full bg-gray-50 z-10 shadow-md hover:shadow-gray-300"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDelete(receipt.id);
+        }}
       >
         <MdOutlineDelete className="text-red-600" size={30} />
       </button>

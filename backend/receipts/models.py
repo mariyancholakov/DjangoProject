@@ -11,6 +11,14 @@ class Receipt(models.Model):
         ("food", "Храна"),
         ("electronics", "Електроника"),
         ("clothing", "Дрехи"),
+        ("home", "Дом"),
+        ("pharmacy", "Аптека"),
+        ("transport", "Транспорт"),
+        ("entertainment", "Развлечения"),
+        ("education", "Образование"),
+        ("utilities", "Сметки"),
+        ("services", "Услуги"),
+        ("finances", "Услуги"),
         ("other", "Друго"),
     ])
     warranty_months = models.IntegerField(null=True, blank=True)
@@ -37,7 +45,7 @@ class ReceiptImage(models.Model):
         ordering = ['-uploaded_at']
 
 class Product(models.Model):
-    receipt = models.ForeignKey(Receipt, related_name='products', on_delete=models.CASCADE)
+    receipt = models.ForeignKey(Receipt, related_name='products', on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 

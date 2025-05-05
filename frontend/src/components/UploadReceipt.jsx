@@ -9,6 +9,14 @@ const categoryLabels = {
   food: "Храна",
   electronics: "Електроника",
   clothing: "Дрехи",
+  home: "Дом",
+  pharmacy: "Аптека",
+  entertainment: "Развлечение",
+  transport: "Транспорт",
+  education: "Образование",
+  utilities: "Сметки",
+  finances: "Финанси",
+  services: "Услуги",
   other: "Друго",
 };
 
