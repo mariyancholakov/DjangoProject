@@ -93,16 +93,54 @@ class ReceiptRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def put(self, request, pk):
         try:
-            receipt = Receipt.objects.get(pk=pk)
-        except Receipt.DoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            receipt = Receipt.objects.get(pk=pk, user=request.user)
+            
+            receipt.title = request.data.get('title', receipt.title)
+            receipt.store_name = request.data.get('store_name', receipt.store_name)
+            receipt.total_amount = request.data.get('total_amount', receipt.total_amount)
+            receipt.category = request.data.get('category', receipt.category)
+            receipt.warranty_months = request.data.get('warranty_months', receipt.warranty_months)
+            
+            date_str = request.data.get('date')
+            if date_str:
+                try:
+                    receipt.date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                except ValueError:
+                    return Response(
+                    {'error': 'Invalid date format. Use YYYY-MM-DD'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        serializer = ReceiptSerializer(receipt, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
+            
+            receipt.save()
+
+            if 'products' in request.data:
+                Product.objects.filter(receipt=receipt).delete()
+
+                products_data = request.data['products']
+                if isinstance(products_data, str):
+                    products_data = json.loads(products_data)
+                    
+                for product_data in products_data:
+                    Product.objects.create(
+                        receipt=receipt,
+                        name=product_data['name'],
+                        price=product_data['price']
+                    )
+
+            serializer = ReceiptSerializer(receipt)
             return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Receipt.DoesNotExist:
+            return Response(
+                {"error": "Receipt not found"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
     def delete(self, request, pk):
         try:
