@@ -15,6 +15,8 @@ from django.http import JsonResponse
 from .services.gemini_service import GeminiService
 from .services.ocr_service import OCRService
 import os
+from django.db.models import Sum
+from django.db.models.functions import ExtractYear, ExtractMonth, ExtractDay
 
 # Create your views here.
 
@@ -68,11 +70,6 @@ class ReceiptListCreateAPIView(generics.ListCreateAPIView):
             serializer = self.get_serializer(receipt)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        except KeyError as e:
-            return Response(
-                {'error': f'Missing required field: {str(e)}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         except Exception as e:
             return Response(
                 {'error': str(e)},
@@ -229,6 +226,54 @@ class OCRView(APIView):
         finally:
             if os.path.exists(temp_path):
                 os.remove(temp_path)
+
+
+class ReceiptStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        period = request.query_params.get('period', 'month')
+        category = request.query_params.get('category', None)
+        date_from = request.query_params.get('from', None)
+        date_to = request.query_params.get('to', None)
+
+        queryset = Receipt.objects.filter(user=request.user)
+
+        if date_from:
+            queryset = queryset.filter(date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(date__lte=date_to)
+
+        if category:
+            queryset = queryset.filter(category=category)
+
+        if period == 'day':
+            stats = queryset.annotate(
+                period=ExtractDay('date')
+            ).values('period').annotate(
+                total_amount=Sum('total_amount')
+            ).order_by('period')
+        elif period == 'month':
+            stats = queryset.annotate(
+                period=ExtractMonth('date')
+            ).values('period').annotate(
+                total_amount=Sum('total_amount')
+            ).order_by('period')
+        elif period == 'year':
+            stats = queryset.annotate(
+                period=ExtractYear('date')
+            ).values('period').annotate(
+                total_amount=Sum('total_amount')
+            ).order_by('period')
+
+        category_stats = queryset.values('category').annotate(
+            total_amount=Sum('total_amount')
+        ).order_by('-total_amount')
+
+        return Response({
+            'time_based': list(stats),
+            'category_based': list(category_stats)
+        })
 
 
 class LoginView(TokenObtainPairView):

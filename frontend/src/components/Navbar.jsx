@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { CiCirclePlus } from "react-icons/ci";
 import axiosInstance from "../utils/axios";
-import { toast } from "react-toastify";
-import Logo_final from "../assets/Logo_final.png";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -36,7 +34,6 @@ function Navbar() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     setUsername(null);
-    toast.success("Logout successful!");
     navigate("/login");
   };
 
