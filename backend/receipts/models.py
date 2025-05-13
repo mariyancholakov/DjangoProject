@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import timedelta, datetime
+from django.utils import timezone
 
 class Receipt(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receipts", null=True, blank=True)
@@ -24,12 +26,12 @@ class Receipt(models.Model):
     warranty_months = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def warranty_expiry_date(self):
-        if self.warranty_months:
-            from datetime import timedelta
-            return self.date + timedelta(days=self.warranty_months * 30)
+    def warranty_expiry_datetime(self):
+        if self.warranty_months is not None:
+            expiry_date = self.date + timedelta(days=self.warranty_months * 30)
+            return timezone.make_aware(datetime.combine(expiry_date, datetime.max.time()))
         return None
-        
+
     def __str__(self):
         return f"{self.title} - {self.store_name}"
 
