@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from "react";
 
+const categories = [
+  { value: "food", label: "Храна" },
+  { value: "electronics", label: "Електроника" },
+  { value: "clothing", label: "Дрехи" },
+  { value: "home", label: "Дом" },
+  { value: "pharmacy", label: "Аптека" },
+  { value: "entertainment", label: "Развлечение" },
+  { value: "transport", label: "Транспорт" },
+  { value: "education", label: "Образование" },
+  { value: "utilities", label: "Сметки" },
+  { value: "finances", label: "Финанси" },
+  { value: "services", label: "Услуги" },
+  { value: "other", label: "Друго" },
+];
+
 function EditReceiptModal({ receipt, onClose, onSave, isOpen }) {
   const [formData, setFormData] = useState({
     store_name: "",
@@ -92,12 +107,13 @@ function EditReceiptModal({ receipt, onClose, onSave, isOpen }) {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border outline-none rounded focus:ring-2 focus:ring-blue-500"
             >
-              <option value="food">Храна</option>
-              <option value="electronics">Електроника</option>
-              <option value="clothing">Дрехи</option>
-              <option value="other">Друго</option>
+              {categories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
             </select>
           </div>
 

@@ -74,14 +74,16 @@ function ReceiptCard({ receipt, handleEdit, handleDelete }) {
 
       <div className="flex flex-col h-full">
         <div className="p-6 flex-grow">
-          <h3 className="font-semibold text-center px-2 text-xl mb-4">
+          <h3 className="font-semibold text-center px-2 text-xl mb-8">
             {receipt.title}
           </h3>
 
           <div className="space-y-2 mb-4">
             <p className="flex justify-between">
               <span className="text-gray-600">Total:</span>
-              <span className="font-medium">{receipt.total_amount} BGN</span>
+              <span className="font-extrabold text-blue-600 ">
+                {receipt.total_amount} BGN
+              </span>
             </p>
             <p className="flex justify-between">
               <span className="text-gray-600">Date:</span>
@@ -106,7 +108,7 @@ function ReceiptCard({ receipt, handleEdit, handleDelete }) {
           </div>
 
           {receipt.products?.length > 0 && (
-            <div className="mt-4">
+            <div className="mt-4 h-35 overflow-y-auto">
               <h4 className="font-semibold mb-2">Products:</h4>
               <ul className="space-y-1">
                 {receipt.products.map((product, index) => (

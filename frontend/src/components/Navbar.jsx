@@ -53,7 +53,7 @@ function Navbar() {
       </NavLink>
       {username ? (
         <div className="flex items-center gap-4">
-          <span className="text-gray-700">Hi, {username}</span>
+          <span className="text-sm text-gray-700">Hi, {username}</span>
           <button
             onClick={handleLogout}
             className="px-4 py-2 text-sm border-2 border-[#007BFF] hover:bg-slate-100 cursor-pointer rounded-md"

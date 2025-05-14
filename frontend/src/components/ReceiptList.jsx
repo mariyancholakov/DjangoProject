@@ -7,19 +7,11 @@ import EditReceiptModal from "./EditReceiptModal";
 import { toast } from "react-toastify";
 
 function ReceiptList() {
-  const [receipts, setReceipts] = useState([]);
+  const [latestReceipts, setLatestReceipts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sortBy, setSortBy] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const navigate = useNavigate();
-
-  const sortOptions = [
-    { value: "date", label: "Date" },
-    { value: "total_amount", label: "Total Amount" },
-    { value: "store_name", label: "Store Name" },
-    { value: "warranty_months", label: "Warranty" },
-  ];
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -34,8 +26,8 @@ function ReceiptList() {
     try {
       setLoading(true);
       const response = await axiosInstance.get("/receipts/");
-      console.log("API Response:", response.data);
-      setReceipts(response.data);
+      console.log("Latest Response:", response.data);
+      setLatestReceipts(response.data.slice(0, 5));
     } catch (error) {
       console.error("Error fetching receipts:", error);
       if (error.response?.status === 401) {
@@ -47,7 +39,7 @@ function ReceiptList() {
   };
 
   const handleEditClick = (id) => {
-    const receipt = receipts.find((r) => r.id === id);
+    const receipt = latestReceipts.find((r) => r.id === id);
     setSelectedReceipt(receipt);
     setIsModalOpen(true);
   };
@@ -67,7 +59,7 @@ function ReceiptList() {
       const response = await axiosInstance.put(`/receipts/${id}/`, requestData);
 
       if (response.status === 200) {
-        setReceipts((prevReceipts) =>
+        setLatestReceipts((prevReceipts) =>
           prevReceipts.map((receipt) =>
             receipt.id === id ? response.data : receipt
           )
@@ -90,7 +82,7 @@ function ReceiptList() {
     try {
       const res = await axiosInstance.delete(`/receipts/${id}/`);
       if (res.status === 204) {
-        setReceipts((prevReceipts) =>
+        setLatestReceipts((prevReceipts) =>
           prevReceipts.filter((receipt) => receipt.id !== id)
         );
       }
@@ -105,32 +97,15 @@ function ReceiptList() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between px-20 mb-10">
-        <h2 className="text-2xl font-bold mb-6">My Receipts</h2>
-        <input
-          type="text"
-          placeholder="Search receipts..."
-          className="shadow-md bg-white/50 shadow-blue-600/30 focus:shadow-blue-500/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-80 px-4"
-        />
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="shadow-md bg-white placeholder:text-gray-600 outline-none rounded-full h-10 w-70 pl-4 cursor-pointer"
-        >
-          <option value="">Sort by...</option>
-          {sortOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              Sort by: {option.label}
-            </option>
-          ))}
-        </select>
+      <div className="flex justify-center px-20 mb-10">
+        <h2 className="text-2xl font-bold mb-6">Latest Receipts</h2>
       </div>
 
       {loading ? (
         <div className="flex justify-center items-center h-32">
           <ClipLoader color="#007BFF" />
         </div>
-      ) : receipts.length === 0 ? (
+      ) : latestReceipts.length === 0 ? (
         <div className="flex justify-center items-center h-32">
           <h2 className="font-bold text-gray-700 text-3xl">
             No receipts found.
@@ -138,7 +113,7 @@ function ReceiptList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {receipts.map((receipt) => (
+          {latestReceipts.map((receipt) => (
             <ReceiptCard
               key={receipt.id}
               receipt={receipt}

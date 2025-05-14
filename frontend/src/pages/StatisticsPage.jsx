@@ -97,17 +97,31 @@ function StatisticsPage() {
     ],
   };
 
+  const categoryColors = {
+    food: "rgba(90, 240, 120, 1)",
+    electronics: "rgba(72, 156, 250, 1)",
+    clothing: "rgba(96, 72, 250, 1)",
+    home: "rgba(249, 168, 52, 1)",
+    pharmacy: "rgba(245, 101, 101, 1)",
+    transport: "rgba(88, 223, 217, 1)",
+    entertainment: "rgba(233, 44, 93, 1)",
+    education: "rgba(119, 135, 218, 1)",
+    utilities: "rgba(203, 236, 40, 1)",
+    services: "rgba(69, 109, 208, 1)",
+    finances: "rgba(250, 214, 14, 1)",
+    other: "rgba(160, 174, 192, 1)",
+  };
+
   const categoryChartData = {
     labels: categoryData.map((item) => item.category),
     datasets: [
       {
         data: categoryData.map((item) => item.total_amount),
-        backgroundColor: [
-          "rgb(255, 99, 132)",
-          "rgb(224, 224, 224)",
-          "rgb(54, 162, 235)",
-          "rgb(255, 205, 86)",
-        ],
+        backgroundColor: categoryData.map(
+          (item) => categoryColors[item.category] || categoryColors.other
+        ),
+        borderColor: "white",
+        borderWidth: 2,
       },
     ],
   };
@@ -120,24 +134,21 @@ function StatisticsPage() {
 
   return (
     <div className="px-8 py-8">
-      <div className="flex justify-center gap-30 items-center mb-10">
+      <div className="flex justify-between px-10 gap-30 items-center mb-10">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold">Expenses Statistics</h1>
-          <div>
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="py-2 pr-4 pl-1 border-2 shadow-md shadow-blue-600/30 focus:shadow-blue-500/50 outline-none border-[#007BFF] rounded-md"
-            >
-              <option value="day">Daily</option>
-              <option value="month">Monthly</option>
-              <option value="year">Yearly</option>
-            </select>
-          </div>
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="shadow-md bg-white/50 shadow-blue-600/30 focus:shadow-blue-500/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-60 px-4 cursor-pointer"
+          >
+            <option value="day">Daily</option>
+            <option value="month">Monthly</option>
+            <option value="year">Yearly</option>
+          </select>
         </div>
         <div className="text-xl font-semibold">
           Total Spend:{" "}
-          <span className="text-[#007BFF] font-bold">
+          <span className="text-blue-600 font-extrabold">
             {totalSpend.toFixed(2)} BGN
           </span>
         </div>
