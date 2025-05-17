@@ -134,12 +134,12 @@ function StatisticsPage() {
 
   return (
     <div className="px-8 py-8">
-      <div className="flex justify-between px-10 gap-30 items-center mb-10">
+      <div className="flex justify-baseline px-10 gap-30 items-center mb-10">
         <div className="flex items-center gap-4">
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            className="shadow-md bg-white/50 shadow-blue-600/30 focus:shadow-blue-500/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-60 px-4 cursor-pointer"
+            className="shadow-md bg-white/50 shadow-primary-blue/30 focus:shadow-primary-blue/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-60 px-4 cursor-pointer"
           >
             <option value="day">Daily</option>
             <option value="month">Monthly</option>
@@ -148,7 +148,7 @@ function StatisticsPage() {
         </div>
         <div className="text-xl font-semibold">
           Total Spend:{" "}
-          <span className="text-blue-600 font-extrabold">
+          <span className="text-neon-green font-bold">
             {totalSpend.toFixed(2)} BGN
           </span>
         </div>

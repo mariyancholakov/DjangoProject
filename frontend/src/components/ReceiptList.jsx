@@ -27,7 +27,10 @@ function ReceiptList() {
       setLoading(true);
       const response = await axiosInstance.get("/receipts/");
       console.log("Latest Response:", response.data);
-      setLatestReceipts(response.data.slice(0, 5));
+      const sortedReceipts = response.data.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+      setLatestReceipts(sortedReceipts.slice(0, 5));
     } catch (error) {
       console.error("Error fetching receipts:", error);
       if (error.response?.status === 401) {
@@ -98,7 +101,9 @@ function ReceiptList() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-center px-20 mb-10">
-        <h2 className="text-2xl font-bold mb-6">Latest Receipts</h2>
+        <h2 className="text-2xl font-bold text-primary-blue-dark">
+          Latest 5 Receipts
+        </h2>
       </div>
 
       {loading ? (
@@ -112,7 +117,7 @@ function ReceiptList() {
           </h2>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-6">
           {latestReceipts.map((receipt) => (
             <ReceiptCard
               key={receipt.id}

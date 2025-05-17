@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { CiCirclePlus } from "react-icons/ci";
 import axiosInstance from "../utils/axios";
 
@@ -21,15 +21,6 @@ function Navbar() {
     }
   }, []);
 
-  const navLinkStyles = ({ isActive }) =>
-    `relative px-2 py-1 text-sm
-    ${isActive ? "text-[#007BFF]" : "text-gray-700"}
-    before:content-[''] before:absolute before:block before:w-full 
-    before:h-[2px] before:bottom-0 before:left-0 before:bg-[#007BFF]
-    before:transition-transform before:duration-200
-    ${isActive ? "before:scale-x-100" : "before:scale-x-0"}
-    before:origin-left`;
-
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
@@ -38,43 +29,56 @@ function Navbar() {
   };
 
   return (
-    <div className="flex justify-center gap-50 font-bold items-center w-full pb-8 pt-2">
-      <NavLink style={{ fontSize: 20 }} className={navLinkStyles} to="/">
+    <div className="flex justify-center gap-50 font-bold items-center w-full mb-6 pt-2">
+      <Link
+        style={{ fontSize: 20 }}
+        className="relative px-2 py-1 text-sm font-bold text-primary-blue-dark hover:text-primary-blue focus:text-primary-blue transition duration-300 ease-in-out"
+        to="/"
+      >
         SmartReceipt
-      </NavLink>
-      <NavLink className={navLinkStyles} to="/my-receipts">
+      </Link>
+      <Link
+        className="relative px-2 py-1 text-md font-bold text-primary-blue-dark hover:text-primary-blue focus:text-primary-blue transition duration-300 ease-in-out"
+        to="/my-receipts"
+      >
         MyReceipts
-      </NavLink>
-      <NavLink className="text-[#007BFF]" to="/upload">
-        <CiCirclePlus size={55} />
-      </NavLink>
-      <NavLink className={navLinkStyles} to="/statistics">
+      </Link>
+      <Link className="relative px-2 py-1" to="/upload">
+        <CiCirclePlus
+          className="text-primary-blue hover:text-neon-green transition duration-300 ease-in-out"
+          size={55}
+        />
+      </Link>
+      <Link
+        className="relative px-2 py-1 text-md font-bold text-primary-blue-dark hover:text-primary-blue focus:text-primary-blue transition duration-300 ease-in-out"
+        to="/statistics"
+      >
         Statistics
-      </NavLink>
+      </Link>
       {username ? (
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-700">Hi, {username}</span>
+          <span className="text-sm text-primary-blue-dark">Hi, {username}</span>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 text-sm border-2 border-[#007BFF] hover:bg-slate-100 cursor-pointer rounded-md"
+            className="px-4 py-2 text-sm border-2 border-primary-blue hover:bg-slate-100 cursor-pointer rounded-md transition duration-300 ease-in-out"
           >
             Logout
           </button>
         </div>
       ) : (
         <div>
-          <NavLink
-            className="px-4 py-2 text-white border-2 border-[#007BFF] mr-2 text-sm bg-[#007BFF] hover:bg-blue-600 hover:border-blue-600 transition duration-300 ease-in-out cursor-pointer rounded-md"
+          <Link
+            className="px-4 py-2 text-white border-2 border-primary-blue mr-2 text-sm bg-primary-blue hover:bg-primary-blue-hover hover:border-primary-blue-hover transition duration-300 ease-in-out cursor-pointer rounded-md"
             to="/login"
           >
             Login
-          </NavLink>
-          <NavLink
-            className="px-4 py-2 text-sm border-2 border-[#007BFF] hover:bg-slate-100 cursor-pointer rounded-md"
+          </Link>
+          <Link
+            className="px-4 py-2 text-sm border-2 border-primary-blue hover:bg-slate-100 cursor-pointer rounded-md"
             to="/register"
           >
             Register
-          </NavLink>
+          </Link>
         </div>
       )}
     </div>

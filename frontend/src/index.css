@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@theme {
+    --color-neon-green: #1DC690;
+    --color-neon-green-hover: #13AE7F;
+    --color-primary-blue: #278AB0;
+    --color-primary-blue-hover: #1B6EA2;
+    --color-primary-blue-dark: #1C4670;
+    --color-bg-cream: #EAEAE0;
+    --color-accent: #CAFF29;
+}

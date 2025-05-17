@@ -60,7 +60,7 @@ function ReceiptCard({ receipt, handleEdit, handleDelete }) {
           handleEdit(receipt.id);
         }}
       >
-        <CiEdit className="text-blue-600" size={30} />
+        <CiEdit className="text-neon-green font-bold" size={30} />
       </button>
       <button
         className="absolute cursor-pointer top-2 left-2 p-2 rounded-full bg-gray-50 z-10 shadow-md hover:shadow-gray-300"
@@ -69,19 +69,19 @@ function ReceiptCard({ receipt, handleEdit, handleDelete }) {
           handleDelete(receipt.id);
         }}
       >
-        <MdOutlineDelete className="text-red-600" size={30} />
+        <MdOutlineDelete className="text-primary-blue" size={30} />
       </button>
 
       <div className="flex flex-col h-full">
         <div className="p-6 flex-grow">
-          <h3 className="font-semibold text-center px-2 text-xl mb-8">
+          <h3 className="text-primary-blue-dark font-semibold text-center px-2 text-xl mb-8">
             {receipt.title}
           </h3>
 
           <div className="space-y-2 mb-4">
             <p className="flex justify-between">
               <span className="text-gray-600">Total:</span>
-              <span className="font-extrabold text-blue-600 ">
+              <span className="font-extrabold text-neon-green">
                 {receipt.total_amount} BGN
               </span>
             </p>

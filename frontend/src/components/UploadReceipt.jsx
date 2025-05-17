@@ -54,10 +54,6 @@ function UploadReceipt() {
         geminiFormData
       );
 
-      if (!processedData.data) {
-        throw new Error("Failed to process receipt data");
-      }
-
       setExtractedData({
         ...processedData.data,
         raw_text: ocrResponse.data.text,
@@ -158,10 +154,10 @@ function UploadReceipt() {
   };
 
   return (
-    <div className="flex gap-8 bg-white/80 backdrop-blur-sm w-[80%] h-[70%] rounded-xl p-6 shadow-lg">
+    <div className="flex gap-8 bg-white/80 w-[80%] h-[70%] rounded-xl p-6 shadow-lg">
       <div className="w-1/2 h-full">
         <form
-          className="h-full rounded-xl border-2 border-dashed border-blue-400 hover:border-blue-600 transition-colors cursor-pointer relative overflow-hidden"
+          className="h-full rounded-xl border-2 border-dashed border-neon-green hover:border-neon-green-hover cursor-pointer"
           onSubmit={handleSubmit}
         >
           {previewUrl ? (
@@ -171,23 +167,15 @@ function UploadReceipt() {
                 alt="Receipt preview"
                 className="h-full w-full object-contain p-2"
               />
-              <div className="absolute inset-0 bg-gray-600 opacity-0 group-hover:opacity-90 transition-opacity flex items-center justify-center">
-                <span className="text-white text-sm">
-                  Click to change image
-                </span>
-              </div>
             </div>
           ) : (
             <label
               htmlFor="receipt-file"
               className="h-full w-full flex flex-col items-center justify-center cursor-pointer p-4"
             >
-              <FiUpload className="text-4xl text-blue-500 mb-4" />
+              <FiUpload className="text-4xl text-primary-blue mb-4" />
               <span className="text-lg font-medium text-gray-700">
-                Drop your receipt here
-              </span>
-              <span className="text-sm text-gray-500 mt-2">
-                {loading ? "Processing..." : "or click to upload"}
+                {loading ? "Processing..." : "Upload your Receipt here"}
               </span>
             </label>
           )}
@@ -205,11 +193,11 @@ function UploadReceipt() {
       <div className="w-1/2">
         {loading ? (
           <div className="h-full flex items-center justify-center">
-            <ClipLoader color="#007BFF" />
+            <ClipLoader color="#278AB0" />
           </div>
         ) : extractedData ? (
           <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">
+            <h2 className="text-2xl font-bold mb-6 text-primary-blue-dark">
               Receipt Details
             </h2>
             <div className="space-y-4">
@@ -221,7 +209,7 @@ function UploadReceipt() {
                   onChange={(e) =>
                     handleInputChange("store_name", e.target.value)
                   }
-                  className="text-right text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2"
+                  className="text-right text-gray-800 font-semibold outline-none rounded px-2"
                 />
               </div>
               <div className="flex justify-between items-center pb-2 border-b">
@@ -231,23 +219,22 @@ function UploadReceipt() {
                   value={editableData?.date || ""}
                   onChange={(e) => handleInputChange("date", e.target.value)}
                   placeholder="DD-MM-YYYY"
-                  className="text-right text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2"
+                  className="text-right text-gray-800 outline-none rounded px-2"
                 />
               </div>
               <div className="flex justify-between items-center pb-2 border-b">
                 <span className="font-medium text-gray-600">Total Amount</span>
                 <div className="flex items-center">
                   <input
-                    type="number"
+                    type="text"
                     value={editableData?.total_amount || ""}
                     onChange={(e) =>
                       handleInputChange("total_amount", e.target.value)
                     }
-                    step="0.01"
-                    className="text-right text-gray-800 font-bold w-24 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2"
+                    className="text-right text-neon-green font-bold w-24 outline-none rounded px-2"
                     placeholder="0.00"
                   />
-                  <span className="text-gray-600 ml-1">BGN</span>
+                  <span className="text-gray-600">BGN</span>
                 </div>
               </div>
               <div className="flex justify-between items-center pb-2 border-b">
@@ -257,7 +244,7 @@ function UploadReceipt() {
                   onChange={(e) =>
                     handleInputChange("category", e.target.value)
                   }
-                  className="text-right text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2"
+                  className="text-right text-gray-800 outline-none rounded px-2"
                 >
                   {Object.entries(categoryLabels).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -269,13 +256,13 @@ function UploadReceipt() {
 
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-lg font-semibold text-gray-800">
+                  <h3 className="text-lg font-semibold text-primary-blue-dark">
                     Products
                   </h3>
                   <button
                     type="button"
                     onClick={handleAddProduct}
-                    className="px-2 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                    className="px-2 py-1 text-sm bg-neon-green text-white rounded hover:bg-neon-green-hover transition-colors"
                   >
                     + Add Product
                   </button>
@@ -292,26 +279,25 @@ function UploadReceipt() {
                         onChange={(e) =>
                           handleProductChange(index, "name", e.target.value)
                         }
-                        className="text-gray-700 w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2"
+                        className="text-gray-700 w-1/2 outline-none rounded px-2"
                         placeholder="Product name"
                       />
                       <div className="flex items-center w-1/3">
                         <input
-                          type="number"
+                          type="text"
                           value={product.price}
                           onChange={(e) =>
                             handleProductChange(index, "price", e.target.value)
                           }
-                          step="0.01"
-                          className="text-right font-medium text-gray-800 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2"
+                          className="text-right font-medium text-gray-800 w-full outline-none rounded px-2"
                           placeholder="0.00"
                         />
-                        <span className="text-gray-600 ml-1">BGN</span>
+                        <span className="text-gray-600">BGN</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleDeleteProduct(index)}
-                        className="opacity-0 group-hover:opacity-100 ml-auto p-1 text-red-500 hover:text-red-700 transition-opacity"
+                        className="ml-auto p-1 text-primary-blue hover:text-primary-blue-hover transition-opacity"
                       >
                         ✕
                       </button>
@@ -323,8 +309,7 @@ function UploadReceipt() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={loading || !receiptFile}
-                className="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-6 w-full bg-primary-blue hover:bg-primary-blue-dark text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
                 {loading ? "Processing..." : "Save Receipt"}
               </button>

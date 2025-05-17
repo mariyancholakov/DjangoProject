@@ -6,12 +6,10 @@ import { toast } from "react-toastify";
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
 
     try {
       const response = await axios.post(
@@ -40,48 +38,50 @@ function Login() {
     } catch (error) {
       toast.error("Login failed!");
       console.error("Login failed:", error);
-      setError(
-        error.response?.data?.detail ||
-          "Invalid username or password. Please try again."
-      );
     }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center min-h-screen">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-96"
+        className="bg-white p-8 rounded-lg shadow-md max-w-md w-full"
       >
-        <h2 className="text-2xl mb-6 text-center font-bold">Login</h2>
-        {error && (
-          <div className="mb-4 p-2 bg-red-100 text-red-700 rounded text-sm">
-            {error}
+        <h2 className="text-3xl mb-6 text-center font-bold text-primary-blue-dark">
+          Login
+        </h2>
+        <div className="flex flex-col gap-6">
+          <div>
+            <label className="text-gray-700">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none"
+            />
           </div>
-        )}
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full mb-4 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full mb-4 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+          <div>
+            <label className="text-gray-700">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none"
+            />
+          </div>
+        </div>
         <button
           type="submit"
-          className="w-full mb-2 bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition-colors"
+          className="w-full mb-2 mt-6 bg-primary-blue hover:bg-primary-blue-hover cursor-pointer text-white font-bold rounded-sm p-2 transition duration-300 ease-in-out"
         >
           Login
         </button>
         <p className="text-center text-gray-600">
           Dont have an account yet?{" "}
-          <Link to="/register" className="text-blue-600 hover:text-blue-800">
+          <Link
+            to="/register"
+            className="text-neon-green hover:text-neon-green-hover"
+          >
             Register
           </Link>
         </p>
