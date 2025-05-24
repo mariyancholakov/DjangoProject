@@ -1,5 +1,5 @@
 import axiosInstance from "../utils/axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiUpload } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import ClipLoader from "react-spinners/ClipLoader";
@@ -21,59 +21,24 @@ const categoryLabels = {
 };
 
 function UploadReceipt() {
-  const [receiptFile, setReceiptFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [receiptFiles, setReceiptFiles] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [extractedData, setExtractedData] = useState(null);
   const [editableData, setEditableData] = useState(null);
   const navigate = useNavigate();
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setLoading(true);
-    setReceiptFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const ocrResponse = await axiosInstance.post("/ocr/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (!ocrResponse.data.text) {
-        throw new Error("OCR failed to extract text");
-      }
-
-      const geminiFormData = new FormData();
-      geminiFormData.append("raw_text", ocrResponse.data.text);
-      const processedData = await axiosInstance.post(
-        "/process/",
-        geminiFormData
-      );
-
-      setExtractedData({
-        ...processedData.data,
-        raw_text: ocrResponse.data.text,
-      });
-    } catch (error) {
-      console.error("Error processing receipt:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
+      if (previewUrls.length > 0) {
+        previewUrls.forEach((url) => {
+          URL.revokeObjectURL(url);
+        });
       }
     };
-  }, [previewUrl]);
+  }, [previewUrls]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (extractedData) {
       setEditableData({
         store_name: extractedData.store_name,
@@ -84,6 +49,47 @@ function UploadReceipt() {
       });
     }
   }, [extractedData]);
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+    setReceiptFiles(files);
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      files.forEach((image) => {
+        formData.append("images", image);
+        setPreviewUrls((prev) => [...prev, URL.createObjectURL(image)]);
+      });
+
+      try {
+        const ocrResponse = await axiosInstance.post("/ocr/", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (!ocrResponse.data.text) {
+          throw new Error("OCR failed to extract text");
+        }
+
+        const geminiFormData = new FormData();
+        geminiFormData.append("raw_text", ocrResponse.data.text);
+        const processedData = await axiosInstance.post(
+          "/process/",
+          geminiFormData
+        );
+
+        setExtractedData({
+          ...processedData.data,
+          raw_text: ocrResponse.data.text,
+        });
+      } catch (error) {
+        toast.error("Error processing receipt images");
+        console.error("Error:", error);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setEditableData((prev) => ({
@@ -117,7 +123,10 @@ function UploadReceipt() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!editableData || !receiptFile) return;
+    if (!editableData || receiptFiles.length === 0) {
+      toast.error("Please upload at least one receipt image");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -127,9 +136,12 @@ function UploadReceipt() {
       formData.append("date", editableData.date);
       formData.append("category", editableData.category);
       formData.append("warranty_months", "0");
-      formData.append("images", receiptFile);
 
-      if (editableData.products && editableData.products.length > 0) {
+      receiptFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+
+      if (editableData.products?.length > 0) {
         formData.append("products", JSON.stringify(editableData.products));
       }
 
@@ -138,8 +150,8 @@ function UploadReceipt() {
       });
 
       if (response.status === 201) {
-        setReceiptFile(null);
-        setPreviewUrl(null);
+        setReceiptFiles([]);
+        setPreviewUrls([]);
         setExtractedData(null);
         toast.success("Receipt uploaded successfully!");
         navigate("/");
@@ -157,23 +169,27 @@ function UploadReceipt() {
     <div className="flex gap-8 bg-white/80 w-[80%] h-[70%] rounded-xl p-6 shadow-lg">
       <div className="w-1/2 h-full">
         <form
-          className="h-full rounded-xl border-2 border-dashed border-neon-green hover:border-neon-green-hover cursor-pointer"
+          className="h-full rounded-xl border-2 border-dashed border-complementary hover:border-complementary-hover cursor-pointer"
           onSubmit={handleSubmit}
         >
-          {previewUrl ? (
-            <div className="h-full w-full relative group">
-              <img
-                src={previewUrl}
-                alt="Receipt preview"
-                className="h-full w-full object-contain p-2"
-              />
+          {previewUrls.length > 0 ? (
+            <div className="h-full w-full flex justify-center items-center gap-5 relative group">
+              {previewUrls.map((url, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={url}
+                    alt={`Receipt preview ${index + 1}`}
+                    className="w-full h-auto max-h-[420px] object-contain"
+                  />
+                </div>
+              ))}
             </div>
           ) : (
             <label
               htmlFor="receipt-file"
               className="h-full w-full flex flex-col items-center justify-center cursor-pointer p-4"
             >
-              <FiUpload className="text-4xl text-primary-blue mb-4" />
+              <FiUpload className="text-4xl text-primary mb-4" />
               <span className="text-lg font-medium text-gray-700">
                 {loading ? "Processing..." : "Upload your Receipt here"}
               </span>
@@ -183,6 +199,7 @@ function UploadReceipt() {
             type="file"
             id="receipt-file"
             onChange={handleFileChange}
+            multiple
             accept="image/*"
             disabled={loading}
             className="hidden"
@@ -193,11 +210,11 @@ function UploadReceipt() {
       <div className="w-1/2">
         {loading ? (
           <div className="h-full flex items-center justify-center">
-            <ClipLoader color="#278AB0" />
+            <ClipLoader color="#2F27CE" />
           </div>
         ) : extractedData ? (
           <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-2xl font-bold mb-6 text-primary-blue-dark">
+            <h2 className="text-2xl font-bold mb-6 text-text-color">
               Receipt Details
             </h2>
             <div className="space-y-4">
@@ -231,7 +248,7 @@ function UploadReceipt() {
                     onChange={(e) =>
                       handleInputChange("total_amount", e.target.value)
                     }
-                    className="text-right text-neon-green font-bold w-24 outline-none rounded px-2"
+                    className="text-right text-complementary font-bold w-24 outline-none rounded px-2"
                     placeholder="0.00"
                   />
                   <span className="text-gray-600">BGN</span>
@@ -256,13 +273,13 @@ function UploadReceipt() {
 
               <div className="mt-6">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-lg font-semibold text-primary-blue-dark">
+                  <h3 className="text-lg font-semibold text-text-color">
                     Products
                   </h3>
                   <button
                     type="button"
                     onClick={handleAddProduct}
-                    className="px-2 py-1 text-sm bg-neon-green text-white rounded hover:bg-neon-green-hover transition-colors"
+                    className="px-2 cursor-pointer py-1 text-sm bg-accent/70 text-primary font-semibold rounded hover:bg-accent-hover/70 transition-colors"
                   >
                     + Add Product
                   </button>
@@ -292,12 +309,12 @@ function UploadReceipt() {
                           className="text-right font-medium text-gray-800 w-full outline-none rounded px-2"
                           placeholder="0.00"
                         />
-                        <span className="text-gray-600">BGN</span>
+                        <span className="text-gray-800">BGN</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleDeleteProduct(index)}
-                        className="ml-auto p-1 text-primary-blue hover:text-primary-blue-hover transition-opacity"
+                        className="ml-auto p-1 text-primary hover:text-primary-hover transition-opacity"
                       >
                         ✕
                       </button>
@@ -309,7 +326,7 @@ function UploadReceipt() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="mt-6 w-full bg-primary-blue hover:bg-primary-blue-dark text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                className="mt-6 w-full cursor-pointer bg-complementary hover:bg-complementary-hover text-white font-medium py-2 px-4 rounded-lg transition-colors"
               >
                 {loading ? "Processing..." : "Save Receipt"}
               </button>

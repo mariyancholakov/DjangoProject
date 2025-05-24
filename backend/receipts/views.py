@@ -51,10 +51,11 @@ class ReceiptListCreateAPIView(generics.ListCreateAPIView):
             )
 
             if 'images' in request.FILES:
-                ReceiptImage.objects.create(
-                    receipt=receipt,
-                    image=request.FILES['images']
-                )
+                for image_file in request.FILES.getlist('images'):
+                    ReceiptImage.objects.create(
+                        receipt=receipt,
+                        image=image_file
+                    )
 
             products = receipt_data.get('products')
             if products:
@@ -196,36 +197,60 @@ def process_receipt(request):
 
 class OCRView(APIView):
     def post(self, request):
-        if 'image' not in request.FILES:
+        if 'images' not in request.FILES:
             return Response(
-                {'error': 'No image provided'}, 
+                {'error': 'No images provided'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        image_file = request.FILES['image']
-        temp_path = f'media/temp/{image_file.name}'
-        
+        temp_files = []
         try:
-            os.makedirs(os.path.dirname(temp_path), exist_ok=True)
-            
-            with open(temp_path, 'wb+') as destination:
-                for chunk in image_file.chunks():
-                    destination.write(chunk)
+            images = request.FILES.getlist('images')
+            if len(images) == 1:
+                image_file = images[0]
+                temp_path = f'media/temp/{image_file.name}'
+                
+                os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+                with open(temp_path, 'wb+') as destination:
+                    for chunk in image_file.chunks():
+                        destination.write(chunk)
+                
+                ocr_service = OCRService()
+                text = ocr_service.extract_text(temp_path)
+                
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                
+                if text:
+                    return Response({'text': text})
+                return Response(
+                    {'error': 'Failed to extract text from image'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            for image_file in images:
+                temp_path = f'media/temp/{image_file.name}'
+                temp_files.append(temp_path)
+                
+                os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+                with open(temp_path, 'wb+') as destination:
+                    for chunk in image_file.chunks():
+                        destination.write(chunk)
 
             ocr_service = OCRService()
-            text = ocr_service.extract_text(temp_path)
-            os.remove(temp_path)
+            combined_text = ocr_service.extract_text_from_multiple_images(temp_files)
 
-            if text:
-                return Response({'text': text})
+            if combined_text:
+                return Response({'text': combined_text})
+            
             return Response(
-                {'error': 'Failed to extract text'}, 
+                {'error': 'Failed to extract text from images'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
+            for temp_path in temp_files:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 
 
 class ReceiptStatisticsView(APIView):
@@ -289,20 +314,16 @@ class RegisterView(APIView):
     def post(self, request):
         try:
             data = request.data
-            # Check if user already exists
             if User.objects.filter(username=data['username']).exists():
                 return Response(
                     {'error': 'Username already exists'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Create user
             user = User.objects.create(
                 username=data['username'],
                 password=make_password(data['password'])
             )
-
-            # Generate tokens
             refresh = RefreshToken.for_user(user)
             
             return Response({

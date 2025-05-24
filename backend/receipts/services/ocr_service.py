@@ -25,3 +25,18 @@ class OCRService:
         except Exception as e:
             print(f"OCR Error: {str(e)}")
             return None
+
+    def extract_text_from_multiple_images(self, image_paths):
+        try:
+            combined_text = []
+            for image_path in image_paths:
+                processed_image = self.preprocess_image(image_path)
+                config = '--oem 3 --psm 6'
+                text = pytesseract.image_to_string(processed_image, lang='bul+eng', config=config)
+                if text.strip():
+                    combined_text.append(text.strip())
+            
+            return '\n'.join(combined_text)
+        except Exception as e:
+            print(f"OCR Error: {str(e)}")
+            return None
