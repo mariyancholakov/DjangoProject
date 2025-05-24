@@ -67,47 +67,47 @@ function EditReceiptModal({ receipt, onClose, onSave, isOpen }) {
         <h2 className="text-2xl font-bold mb-6">Edit Receipt</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700 mb-2">Store Name</label>
+            <label className="block text-text-color mb-2">Store Name</label>
             <input
               type="text"
               name="store_name"
               value={formData.store_name}
               onChange={handleChange}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full outline-none p-2 border rounded focus:ring-1 focus:ring-complementary"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">Total Amount</label>
+            <label className="block text-text-color mb-2">Total Amount</label>
             <input
               type="number"
               name="total_amount"
               value={formData.total_amount}
               onChange={handleChange}
               step="0.01"
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border outline-none rounded focus:ring-1 focus:ring-complementary"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">Date</label>
+            <label className="block text-text-color mb-2">Date</label>
             <input
               type="text"
               name="date"
               value={formData.date}
               onChange={handleChange}
               placeholder="YYYY-MM-DD"
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border outline-none rounded focus:ring-1 focus:ring-complementary"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">Category</label>
+            <label className="block text-text-color mb-2">Category</label>
             <select
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="w-full p-2 border outline-none rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border outline-none rounded focus:ring-1 focus:ring-complementary"
             >
               {categories.map((category) => (
                 <option key={category.value} value={category.value}>
@@ -118,7 +118,7 @@ function EditReceiptModal({ receipt, onClose, onSave, isOpen }) {
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">
+            <label className="block text-text-color mb-2">
               Warranty (months)
             </label>
             <input
@@ -126,12 +126,12 @@ function EditReceiptModal({ receipt, onClose, onSave, isOpen }) {
               name="warranty_months"
               value={formData.warranty_months}
               onChange={handleChange}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500"
+              className="w-full outline-none p-2 border rounded focus:ring-1 focus:ring-complementary"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">Products</label>
+            <label className="block text-text-color mb-2">Products</label>
             {formData.products.map((product, index) => (
               <div key={index} className="flex gap-2 mb-2">
                 <input
@@ -161,13 +161,13 @@ function EditReceiptModal({ receipt, onClose, onSave, isOpen }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 border rounded hover:bg-gray-100"
+              className="px-4 py-2 text-text-color cursor-pointer border border-primary rounded hover:bg-gray-100"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-4 py-2 bg-primary cursor-pointer text-white rounded hover:bg-primary-hover"
             >
               Save Changes
             </button>

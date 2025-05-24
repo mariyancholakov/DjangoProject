@@ -32,35 +32,35 @@ function Navbar() {
     <div className="flex justify-center gap-50 font-bold items-center w-full mb-6 pt-2">
       <Link
         style={{ fontSize: 20 }}
-        className="relative px-2 py-1 text-sm font-bold text-primary-blue-dark hover:text-primary-blue focus:text-primary-blue transition duration-300 ease-in-out"
+        className="relative px-2 py-1 text-sm font-bold text-text-color hover:text-primary focus:text-primary transition duration-300 ease-in-out"
         to="/"
       >
         SmartReceipt
       </Link>
       <Link
-        className="relative px-2 py-1 text-md font-bold text-primary-blue-dark hover:text-primary-blue focus:text-primary-blue transition duration-300 ease-in-out"
+        className="relative px-2 py-1 text-md font-bold text-text-color hover:text-primary focus:text-primary transition duration-300 ease-in-out"
         to="/my-receipts"
       >
         MyReceipts
       </Link>
       <Link className="relative px-2 py-1" to="/upload">
         <CiCirclePlus
-          className="text-primary-blue hover:text-neon-green transition duration-300 ease-in-out"
+          className="text-primary hover:text-complementary transition duration-300 ease-in-out"
           size={55}
         />
       </Link>
       <Link
-        className="relative px-2 py-1 text-md font-bold text-primary-blue-dark hover:text-primary-blue focus:text-primary-blue transition duration-300 ease-in-out"
+        className="relative px-2 py-1 text-md font-bold text-text-color hover:text-primary focus:text-primary transition duration-300 ease-in-out"
         to="/statistics"
       >
         Statistics
       </Link>
       {username ? (
         <div className="flex items-center gap-4">
-          <span className="text-sm text-primary-blue-dark">Hi, {username}</span>
+          <span className="text-sm text-text-color">Hi, {username}</span>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 text-sm border-2 border-primary-blue hover:bg-slate-100 cursor-pointer rounded-md transition duration-300 ease-in-out"
+            className="px-4 py-2 text-sm border-2 border-primary hover:bg-slate-100 cursor-pointer rounded-md transition duration-300 ease-in-out"
           >
             Logout
           </button>
@@ -68,13 +68,13 @@ function Navbar() {
       ) : (
         <div>
           <Link
-            className="px-4 py-2 text-white border-2 border-primary-blue mr-2 text-sm bg-primary-blue hover:bg-primary-blue-hover hover:border-primary-blue-hover transition duration-300 ease-in-out cursor-pointer rounded-md"
+            className="px-4 py-2 text-white border-2 border-primary mr-2 text-sm bg-primary hover:bg-primary-hover hover:border-primary-hover transition duration-300 ease-in-out cursor-pointer rounded-md"
             to="/login"
           >
             Login
           </Link>
           <Link
-            className="px-4 py-2 text-sm border-2 border-primary-blue hover:bg-slate-100 cursor-pointer rounded-md"
+            className="px-4 py-2 text-sm border-2 border-primary hover:bg-slate-100 cursor-pointer rounded-md"
             to="/register"
           >
             Register

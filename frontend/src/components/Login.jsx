@@ -47,7 +47,7 @@ function Login() {
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-lg shadow-md max-w-md w-full"
       >
-        <h2 className="text-3xl mb-6 text-center font-bold text-primary-blue-dark">
+        <h2 className="text-3xl mb-6 text-center font-bold text-text-color">
           Login
         </h2>
         <div className="flex flex-col gap-6">
@@ -72,7 +72,7 @@ function Login() {
         </div>
         <button
           type="submit"
-          className="w-full mb-2 mt-6 bg-primary-blue hover:bg-primary-blue-hover cursor-pointer text-white font-bold rounded-sm p-2 transition duration-300 ease-in-out"
+          className="w-full mb-2 mt-6 bg-primary hover:bg-primary-hover cursor-pointer text-accent font-bold rounded-sm p-2 transition duration-300 ease-in-out"
         >
           Login
         </button>
@@ -80,7 +80,7 @@ function Login() {
           Dont have an account yet?{" "}
           <Link
             to="/register"
-            className="text-neon-green hover:text-neon-green-hover"
+            className="text-complementary hover:text-complementary-hover"
           >
             Register
           </Link>

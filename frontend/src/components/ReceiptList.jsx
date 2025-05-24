@@ -101,14 +101,14 @@ function ReceiptList() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-center px-20 mb-10">
-        <h2 className="text-2xl font-bold text-primary-blue-dark">
+        <h2 className="text-2xl font-bold text-text-color">
           Latest 5 Receipts
         </h2>
       </div>
 
       {loading ? (
         <div className="flex justify-center items-center h-32">
-          <ClipLoader color="#007BFF" />
+          <ClipLoader color="#2F27CE" />
         </div>
       ) : latestReceipts.length === 0 ? (
         <div className="flex justify-center items-center h-32">

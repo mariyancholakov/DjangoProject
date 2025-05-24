@@ -152,14 +152,14 @@ function MyReceiptsPage() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search receipts..."
-            className="shadow-md bg-white/50 shadow-primary-blue/30 focus:shadow-primary-blue/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-80 px-4"
+            className="shadow-md bg-white/50 shadow-primary/30 focus:shadow-primary/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-80 px-4"
           />
         </div>
         <div className="flex gap-6">
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="shadow-md bg-white/50 shadow-primary-blue/30 focus:shadow-primary-blue/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-40 pl-4 cursor-pointer"
+            className="shadow-md bg-white/50 shadow-primary/30 focus:shadow-primary/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-40 pl-4 cursor-pointer"
           >
             {categoryOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -170,7 +170,7 @@ function MyReceiptsPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="shadow-md bg-white/50 shadow-primary-blue/30 focus:shadow-primary-blue/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-40 pl-4 cursor-pointer"
+            className="shadow-md bg-white/50 shadow-primary/30 focus:shadow-primary/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-40 pl-4 cursor-pointer"
           >
             {sortOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -183,7 +183,7 @@ function MyReceiptsPage() {
 
       {loading ? (
         <div className="flex justify-center items-center h-32">
-          <ClipLoader color="#007BFF" />
+          <ClipLoader color="#2F27CE" />
         </div>
       ) : receipts.length === 0 ? (
         <div className="flex justify-center items-center h-32">

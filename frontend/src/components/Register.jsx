@@ -43,7 +43,7 @@ function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-        <h2 className="text-3xl font-bold text-center text-primary-blue-dark">
+        <h2 className="text-3xl font-bold text-center text-text-color">
           Register
         </h2>
         <form className="space-y-6" onSubmit={handleSubmit}>
@@ -82,7 +82,7 @@ function Register() {
           </div>
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-primary-blue hover:bg-primary-blue-hover text-white rounded-md transition-colors"
+            className="w-full py-2 px-4 bg-primary hover:bg-primary-hover text-accent font-bold rounded-md transition-colors"
           >
             Register
           </button>
@@ -91,7 +91,7 @@ function Register() {
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-neon-green hover:text-neon-green-hover"
+            className="text-complementary hover:text-complementary-hover"
           >
             Login
           </Link>
