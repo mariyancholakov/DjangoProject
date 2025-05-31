@@ -4,7 +4,6 @@ import { CiEdit } from "react-icons/ci";
 import { useNavigate } from "react-router-dom";
 
 function ReceiptCard({ receipt, handleEdit, handleDelete }) {
-  const BACKEND_URL = "http://127.0.0.1:8000";
   const images = receipt?.images || [];
   const navigate = useNavigate();
 
@@ -29,7 +28,7 @@ function ReceiptCard({ receipt, handleEdit, handleDelete }) {
     }
   };
 
-  const getImageUrl = (image) => `${BACKEND_URL}${image?.image}`;
+  const getImageUrl = (image) => image?.image || "";
 
   return (
     <div
@@ -38,7 +37,7 @@ function ReceiptCard({ receipt, handleEdit, handleDelete }) {
       onClick={handleCardClick}
     >
       <button
-        className="cursor-pointer absolute top-2 right-2 p-2 rounded-full bg-primary/90 z-10 hover:bg-primary-hover/90 shadow-md hover:shadow-gray-300"
+        className="cursor-pointer absolute top-2 right-2 p-2 rounded-full bg-primary/85 z-10 hover:bg-primary-hover/90 shadow-md hover:shadow-gray-300"
         onClick={(e) => {
           e.stopPropagation();
           handleEdit(receipt.id);
@@ -47,7 +46,7 @@ function ReceiptCard({ receipt, handleEdit, handleDelete }) {
         <CiEdit className="text-accent font-extrabold text-2xl" size={30} />
       </button>
       <button
-        className="absolute cursor-pointer top-2 left-2 p-2 rounded-full bg-gray-50 hover:bg-gray-100 z-10 shadow-md hover:shadow-gray-300"
+        className="absolute cursor-pointer top-2 left-2 p-2 rounded-full bg-primary/5 hover:bg-primary/10 z-10 shadow-md hover:shadow-gray-300"
         onClick={(e) => {
           e.stopPropagation();
           handleDelete(receipt.id);

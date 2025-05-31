@@ -3,20 +3,19 @@ from datetime import datetime
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from .models import Receipt, Product, ReceiptImage
-from .serializers import ReceiptSerializer, UserSerializer
+from .serializers import ReceiptSerializer
 from django.http import JsonResponse
 from .services.gemini_service import GeminiService
 from .services.ocr_service import OCRService
-import os
 from django.db.models import Sum
 from django.db.models.functions import ExtractYear, ExtractMonth, ExtractDay
+import cloudinary.uploader
 
 # Create your views here.
 
@@ -203,23 +202,19 @@ class OCRView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        temp_files = []
         try:
             images = request.FILES.getlist('images')
             if len(images) == 1:
                 image_file = images[0]
-                temp_path = f'media/temp/{image_file.name}'
-                
-                os.makedirs(os.path.dirname(temp_path), exist_ok=True)
-                with open(temp_path, 'wb+') as destination:
-                    for chunk in image_file.chunks():
-                        destination.write(chunk)
+                upload_result = cloudinary.uploader.upload(
+                    image_file,
+                    folder='temp_ocr'
+                )
                 
                 ocr_service = OCRService()
-                text = ocr_service.extract_text(temp_path)
+                text = ocr_service.extract_text(upload_result['secure_url'])
                 
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
+                cloudinary.uploader.destroy(upload_result['public_id'])
                 
                 if text:
                     return Response({'text': text})
@@ -227,17 +222,23 @@ class OCRView(APIView):
                     {'error': 'Failed to extract text from image'}, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
+
+            uploaded_urls = []
+            public_ids = []
+            
             for image_file in images:
-                temp_path = f'media/temp/{image_file.name}'
-                temp_files.append(temp_path)
-                
-                os.makedirs(os.path.dirname(temp_path), exist_ok=True)
-                with open(temp_path, 'wb+') as destination:
-                    for chunk in image_file.chunks():
-                        destination.write(chunk)
+                upload_result = cloudinary.uploader.upload(
+                    image_file,
+                    folder='temp_ocr'
+                )
+                uploaded_urls.append(upload_result['secure_url'])
+                public_ids.append(upload_result['public_id'])
 
             ocr_service = OCRService()
-            combined_text = ocr_service.extract_text_from_multiple_images(temp_files)
+            combined_text = ocr_service.extract_text_from_multiple_images(uploaded_urls)
+
+            for public_id in public_ids:
+                cloudinary.uploader.destroy(public_id)
 
             if combined_text:
                 return Response({'text': combined_text})
@@ -247,10 +248,11 @@ class OCRView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        finally:
-            for temp_path in temp_files:
-                if os.path.exists(temp_path):
-                    os.remove(temp_path)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class ReceiptStatisticsView(APIView):

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from dateutil.relativedelta import relativedelta
+from cloudinary.models import CloudinaryField
 
 class Receipt(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receipts", null=True, blank=True)
@@ -19,7 +20,7 @@ class Receipt(models.Model):
         ("education", "Образование"),
         ("utilities", "Сметки"),
         ("services", "Услуги"),
-        ("finances", "Услуги"),
+        ("finances", "Финанси"),
         ("other", "Друго"),
     ])
     warranty_months = models.IntegerField(default=0)
@@ -36,7 +37,7 @@ class Receipt(models.Model):
 
 class ReceiptImage(models.Model):
     receipt = models.ForeignKey(Receipt, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="receipt_images/")
+    image = CloudinaryField('image', folder='receipt_images')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

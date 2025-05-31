@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
+import cloudinary
 
 # Load environment variables from .env file
 load_dotenv()
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -178,3 +180,15 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'm.cholakov09@gmail.com'
 EMAIL_HOST_PASSWORD = 'tuls wkfv gwhm tnmx'
+
+CLOUDINARY_CONFIG = {
+    'cloud_name': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'api_key': os.getenv('CLOUDINARY_API_KEY'),
+    'api_secret': os.getenv('CLOUDINARY_API_SECRET')
+}
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_CONFIG['cloud_name'],
+    api_key=CLOUDINARY_CONFIG['api_key'],
+    api_secret=CLOUDINARY_CONFIG['api_secret']
+)

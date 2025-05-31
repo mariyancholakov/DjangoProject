@@ -31,6 +31,7 @@ function StatisticsPage() {
   const [timeData, setTimeData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [totalSpend, setTotalSpend] = useState(0);
+  const [areExistingReceipts, setAreExistingReceipts] = useState(false);
 
   useEffect(() => {
     fetchStatistics();
@@ -48,8 +49,10 @@ function StatisticsPage() {
         0
       );
       setTotalSpend(total);
+      setAreExistingReceipts(true);
     } catch (error) {
       console.error("Error fetching statistics:", error);
+      setAreExistingReceipts(false);
     } finally {
       setLoading(false);
     }
@@ -134,50 +137,58 @@ function StatisticsPage() {
 
   return (
     <div className="px-8 py-8">
-      <div className="flex justify-baseline px-10 gap-30 items-center mb-10">
-        <div className="flex items-center gap-4">
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="shadow-md bg-white/50 shadow-primary-blue/30 focus:shadow-primary-blue/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-60 px-4 cursor-pointer"
-          >
-            <option value="day">Daily</option>
-            <option value="month">Monthly</option>
-            <option value="year">Yearly</option>
-          </select>
-        </div>
-        <div className="text-xl font-semibold">
-          Total Spend:{" "}
-          <span className="text-neon-green font-bold">
-            {totalSpend.toFixed(2)} BGN
-          </span>
-        </div>
-      </div>
-
       {loading ? (
-        <div className="flex justify-center">
-          <ClipLoader color="#007BFF" />
+        <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+          <ClipLoader color="#2F27CE" />
         </div>
+      ) : areExistingReceipts ? (
+        <h2 className="text-gray-700 text-center font-light text-3xl mt-32">
+          Add new receipts to see your statistics
+        </h2>
       ) : (
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Time-based Expenses</h2>
-            <div className="h-[300px]">
-              {" "}
-              <Line data={timeChartData} options={chartOptions} />
+        <>
+          <div className="flex justify-baseline px-10 gap-30 items-center mb-10">
+            <div className="flex items-center gap-4">
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="shadow-md bg-white/50 shadow-primary/30 focus:shadow-primary/50 placeholder:text-gray-600 outline-none rounded-full h-10 w-60 px-4 cursor-pointer"
+              >
+                <option value="day">Daily</option>
+                <option value="month">Monthly</option>
+                <option value="year">Yearly</option>
+              </select>
+            </div>
+            <div className="text-xl font-semibold">
+              Total Spend:{" "}
+              <span className="text-complementary font-bold">
+                {totalSpend.toFixed(2)} BGN
+              </span>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">
-              Category-based Expenses
-            </h2>
-            <div className="h-[300px]">
-              {" "}
-              <Doughnut data={categoryChartData} options={chartOptions} />
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h2 className="text-xl font-semibold mb-4">
+                Time-based Expenses
+              </h2>
+              <div className="h-[300px]">
+                {" "}
+                <Line data={timeChartData} options={chartOptions} />
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h2 className="text-xl font-semibold mb-4">
+                Category-based Expenses
+              </h2>
+              <div className="h-[300px]">
+                {" "}
+                <Doughnut data={categoryChartData} options={chartOptions} />
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

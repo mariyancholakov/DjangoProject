@@ -100,11 +100,7 @@ function ReceiptList() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-center px-20 mb-10">
-        <h2 className="text-2xl font-bold text-text-color">
-          Latest 5 Receipts
-        </h2>
-      </div>
+      <div className="flex justify-center px-20 mb-10"></div>
 
       {loading ? (
         <div className="flex justify-center items-center h-32">
@@ -112,21 +108,26 @@ function ReceiptList() {
         </div>
       ) : latestReceipts.length === 0 ? (
         <div className="flex justify-center items-center h-32">
-          <h2 className="font-bold text-gray-700 text-3xl">
-            No receipts found.
+          <h2 className="font-light text-gray-700 text-3xl">
+            No receipts found
           </h2>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-6">
-          {latestReceipts.map((receipt) => (
-            <ReceiptCard
-              key={receipt.id}
-              receipt={receipt}
-              handleEdit={handleEditClick}
-              handleDelete={handleDelete}
-            />
-          ))}
-        </div>
+        <>
+          <h2 className="text-2xl font-bold text-text-color">
+            Latest 5 Receipts
+          </h2>
+          <div className="grid grid-cols-3 gap-6">
+            {latestReceipts.map((receipt) => (
+              <ReceiptCard
+                key={receipt.id}
+                receipt={receipt}
+                handleEdit={handleEditClick}
+                handleDelete={handleDelete}
+              />
+            ))}
+          </div>
+        </>
       )}
       <EditReceiptModal
         isOpen={isModalOpen}

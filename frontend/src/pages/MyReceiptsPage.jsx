@@ -10,7 +10,7 @@ function MyReceiptsPage() {
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("date");
+  const [sortBy, setSortBy] = useState("created_at");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [searchInput, setSearchInput] = useState("");
@@ -18,7 +18,8 @@ function MyReceiptsPage() {
   const navigate = useNavigate();
 
   const sortOptions = [
-    { value: "date", label: "Date" },
+    { value: "created_at", label: "Upload Date" },
+    { value: "date", label: "Receipt Date" },
     { value: "total_amount", label: "Total Amount" },
     { value: "store_name", label: "Store Name" },
     { value: "warranty_months", label: "Warranty" },
@@ -29,6 +30,15 @@ function MyReceiptsPage() {
     { value: "food", label: "Food" },
     { value: "electronics", label: "Electronics" },
     { value: "clothing", label: "Clothing" },
+    { value: "home", label: "Home" },
+    { value: "pharmacy", label: "Pharmacy" },
+    { value: "transport", label: "Transport" },
+    { value: "entertainment", label: "Entertainment" },
+    { value: "education", label: "Education" },
+    { value: "utilities", label: "Utilities" },
+    { value: "services", label: "Services" },
+    { value: "finances", label: "Finances" },
+    { value: "other", label: "Other" },
   ];
 
   useEffect(() => {
@@ -45,6 +55,8 @@ function MyReceiptsPage() {
 
     filtered.sort((a, b) => {
       switch (sortBy) {
+        case "created_at":
+          return new Date(b.created_at) - new Date(a.created_at);
         case "date":
           return new Date(b.date) - new Date(a.date);
         case "total_amount":
@@ -187,8 +199,8 @@ function MyReceiptsPage() {
         </div>
       ) : receipts.length === 0 ? (
         <div className="flex justify-center items-center h-32">
-          <h2 className="font-bold text-gray-700 text-3xl">
-            No receipts found.
+          <h2 className="font-light text-gray-700 text-3xl">
+            No receipts found
           </h2>
         </div>
       ) : (
