@@ -1,6 +1,4 @@
 import React from "react";
-import ReceiptList from "./components/ReceiptList";
-import UploadReceipt from "./components/UploadReceipt";
 import { Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Homepage from "./pages/Homepage";
@@ -11,7 +9,6 @@ import "./App.css";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import { ToastContainer } from "react-toastify";
-import ReceiptDetailsPage from "./pages/ReceiptDetailsPage";
 
 function App() {
   return (
@@ -29,7 +26,6 @@ function App() {
         <Route path="/statistics" element={<StatisticsPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/receipts/:id" element={<ReceiptDetailsPage />} />
       </Routes>
     </>
   );

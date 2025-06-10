@@ -5,7 +5,6 @@ from receipts.models import Receipt
 from datetime import timedelta
 
 class Command(BaseCommand):
-    help = "Send email reminders for warranties expiring in 30 days"
 
     def handle(self, *args, **options):
         current_date = now().date()
@@ -23,7 +22,7 @@ class Command(BaseCommand):
                 user = receipt.user
                 if user and user.email:
                     send_mail(
-                        subject="🔔 Your warranty expires in 30 days",
+                        subject="Your warranty expires in 30 days",
                         message=(
                             f'Hi {user.username},\n\n'
                             f'Your product "{receipt.title}" from {receipt.store_name} '

@@ -13,9 +13,10 @@ from .serializers import ReceiptSerializer
 from django.http import JsonResponse
 from .services.gemini_service import GeminiService
 from .services.ocr_service import OCRService
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.db.models.functions import ExtractYear, ExtractMonth, ExtractDay
 import cloudinary.uploader
+from cloudinary import uploader
 
 # Create your views here.
 
@@ -24,7 +25,32 @@ class ReceiptListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ReceiptSerializer
 
     def get_queryset(self):
-        return Receipt.objects.filter(user=self.request.user).prefetch_related('images', 'products')
+        queryset = Receipt.objects.filter(user=self.request.user)
+        
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(
+                Q(store_name__icontains=search) |
+                Q(title__icontains=search)
+            )
+
+        category = self.request.query_params.get('category', None)
+        if category and category != 'all':
+            queryset = queryset.filter(category=category)
+
+        sort_by = self.request.query_params.get('sort_by', '-created_at')
+        if sort_by == 'date':
+            queryset = queryset.order_by('-date')
+        elif sort_by == 'total_amount':
+            queryset = queryset.order_by('-total_amount')
+        elif sort_by == 'store_name':
+            queryset = queryset.order_by('store_name')
+        elif sort_by == 'warranty_months':
+            queryset = queryset.order_by('-warranty_months')
+        else:
+            queryset = queryset.order_by('-created_at')
+
+        return queryset.prefetch_related('images', 'products')
 
     def create(self, request, *args, **kwargs):
         try:
@@ -78,81 +104,28 @@ class ReceiptListCreateAPIView(generics.ListCreateAPIView):
 
 class ReceiptRetrieveUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = ReceiptSerializer
 
-    def get(self, request, pk):
-        try:
-            receipt = Receipt.objects.get(pk=pk)
-        except Receipt.DoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = ReceiptSerializer(receipt)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return Receipt.objects.filter(user=self.request.user)
 
-    def put(self, request, pk):
+    def destroy(self, request, *args, **kwargs):
         try:
-            receipt = Receipt.objects.get(pk=pk, user=request.user)
+            receipt = self.get_object()
             
-            receipt.title = request.data.get('title', receipt.title)
-            receipt.store_name = request.data.get('store_name', receipt.store_name)
-            receipt.total_amount = request.data.get('total_amount', receipt.total_amount)
-            receipt.category = request.data.get('category', receipt.category)
-            receipt.warranty_months = request.data.get('warranty_months', receipt.warranty_months)
-            
-            date_str = request.data.get('date')
-            if date_str:
+            for image in receipt.images.all():
                 try:
-                    receipt.date = datetime.strptime(date_str, '%Y-%m-%d').date()
-                except ValueError:
-                    return Response(
-                    {'error': 'Invalid date format. Use YYYY-MM-DD'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            
-            receipt.save()
-
-            if 'products' in request.data:
-                Product.objects.filter(receipt=receipt).delete()
-
-                products_data = request.data['products']
-                if isinstance(products_data, str):
-                    products_data = json.loads(products_data)
-                    
-                for product_data in products_data:
-                    Product.objects.create(
-                        receipt=receipt,
-                        name=product_data['name'],
-                        price=product_data['price']
-                    )
-
-            serializer = ReceiptSerializer(receipt)
-            return Response(serializer.data)
-
-        except Receipt.DoesNotExist:
-            return Response(
-                {"error": "Receipt not found"}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            return Response(
-                {"error": str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
-    def delete(self, request, pk):
-        try:
-            receipt = Receipt.objects.get(pk=pk)
-            Product.objects.filter(receipt=receipt).delete()
+                    public_id = image.image.public_id
+                    uploader.destroy(public_id)
+                except Exception as e:
+                    print(f"Error deleting image from Cloudinary: {e}")
             receipt.delete()
+            
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except Receipt.DoesNotExist:
-            return Response(
-                {"error": "Receipt not found"}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
+            
         except Exception as e:
             return Response(
-                {"error": str(e)}, 
+                {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

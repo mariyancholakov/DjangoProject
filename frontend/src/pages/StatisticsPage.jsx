@@ -141,7 +141,7 @@ function StatisticsPage() {
         <div className="flex justify-center items-center h-[calc(100vh-200px)]">
           <ClipLoader color="#2F27CE" />
         </div>
-      ) : areExistingReceipts ? (
+      ) : !areExistingReceipts ? (
         <h2 className="text-gray-700 text-center font-light text-3xl mt-32">
           Add new receipts to see your statistics
         </h2>

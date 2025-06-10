@@ -7,14 +7,13 @@ import EditReceiptModal from "./../components/EditReceiptModal";
 import { toast } from "react-toastify";
 
 function MyReceiptsPage() {
-  const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [searchInput, setSearchInput] = useState("");
-  const [filteredReceipts, setFilteredReceipts] = useState([]);
+  const [receipts, setReceipts] = useState([]);
   const navigate = useNavigate();
 
   const sortOptions = [
@@ -42,38 +41,6 @@ function MyReceiptsPage() {
   ];
 
   useEffect(() => {
-    let filtered = receipts.filter((receipt) => {
-      const matchesSearch =
-        receipt.store_name.toLowerCase().includes(searchInput.toLowerCase()) ||
-        receipt.title.toLowerCase().includes(searchInput.toLowerCase());
-
-      const matchesCategory =
-        categoryFilter === "all" || receipt.category === categoryFilter;
-
-      return matchesSearch && matchesCategory;
-    });
-
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "created_at":
-          return new Date(b.created_at) - new Date(a.created_at);
-        case "date":
-          return new Date(b.date) - new Date(a.date);
-        case "total_amount":
-          return b.total_amount - a.total_amount;
-        case "store_name":
-          return a.store_name.localeCompare(b.store_name);
-        case "warranty_months":
-          return (b.warranty_months || 0) - (a.warranty_months || 0);
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredReceipts(filtered);
-  }, [searchInput, receipts, sortBy, categoryFilter]);
-
-  useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) {
       navigate("/login");
@@ -82,11 +49,17 @@ function MyReceiptsPage() {
     fetchReceipts();
   }, [navigate]);
 
-  const fetchReceipts = async () => {
+  const fetchReceipts = async (params = {}) => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get("/receipts/");
-      console.log("API Response:", response.data);
+      const queryParams = new URLSearchParams({
+        search: searchInput,
+        category: categoryFilter,
+        sort_by: sortBy,
+        ...params,
+      }).toString();
+
+      const response = await axiosInstance.get(`/receipts/?${queryParams}`);
       setReceipts(response.data);
     } catch (error) {
       console.error("Error fetching receipts:", error);
@@ -155,6 +128,14 @@ function MyReceiptsPage() {
     }
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchReceipts();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput, categoryFilter, sortBy]);
+
   return (
     <div className="container mx-auto px-16 py-8">
       <div className="flex justify-between px-10 mb-12">
@@ -205,7 +186,7 @@ function MyReceiptsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredReceipts.map((receipt) => (
+          {receipts.map((receipt) => (
             <ReceiptCard
               key={receipt.id}
               receipt={receipt}
